@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, ChevronRight, Gift, Sparkles } from "lucide-react";
 
 export default function IntentSelector() {
   const [recipient, setRecipient] = useState("Select recipient");
   const [occasion, setOccasion] = useState("Select occasion");
   const [budget, setBudget] = useState("Any budget");
+  const router = useRouter();
 
   return (
-    <div className="w-full max-w-5xl mx-auto -mt-8 relative z-20 px-4">
+    <div className="w-full max-w-5xl mx-auto py-8 relative z-20 px-4">
       
       {/* Subtle Title above the bar */}
       <div className="flex items-center justify-center gap-2 mb-4 px-2">
@@ -54,7 +56,10 @@ export default function IntentSelector() {
 
         {/* Search Button */}
         <div className="w-full md:w-auto p-1 mt-2 md:mt-0">
-          <button className="w-full md:w-auto h-14 px-8 bg-gray-900 hover:bg-black text-white rounded-2xl md:rounded-full font-medium transition-all shadow-lg shadow-gray-900/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 group">
+          <button 
+            onClick={() => router.push('/discover')}
+            className="w-full md:w-auto h-14 px-8 bg-gray-900 hover:bg-black text-white rounded-2xl md:rounded-full font-medium transition-all shadow-lg shadow-gray-900/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 group"
+          >
             <Gift className="w-5 h-5 group-hover:rotate-12 transition-transform" />
             <span className="text-base tracking-wide">Discover</span>
           </button>

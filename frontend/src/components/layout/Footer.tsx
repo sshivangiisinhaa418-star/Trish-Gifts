@@ -47,14 +47,14 @@ export default function Footer() {
           {/* Column 4: Newsletter & Socials */}
           <div>
             <h3 className="font-bold text-gray-900 mb-4">Sign Up For Email Savings</h3>
-            <div className="flex mb-8">
+            <div className="relative mb-8 group">
               <input 
                 type="email" 
-                placeholder="Email" 
-                className="flex-1 min-w-0 px-4 py-2 border border-gray-300 text-sm focus:outline-none focus:border-gray-500 rounded-none bg-white"
+                placeholder="Enter your email" 
+                className="w-full pl-5 pr-32 py-3 bg-white border border-gray-200 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 rounded-full transition-all shadow-sm placeholder:text-gray-400"
               />
-              <button className="px-6 py-2 bg-[#4a6b8c] text-white text-xs font-bold tracking-wider hover:bg-[#3a5b7c] transition-colors rounded-none">
-                SUBMIT
+              <button className="absolute right-1 top-1 bottom-1 px-6 bg-gray-900 text-white text-xs font-bold tracking-widest hover:bg-brand-600 transition-colors rounded-full flex items-center gap-2">
+                JOIN
               </button>
             </div>
             
