@@ -46,7 +46,7 @@ const cards = [
 export default function ExpressGiftsSlider() {
   return (
     <section className="py-12 bg-white relative overflow-hidden">
-      <div className="container mx-auto px-4 mb-10 flex flex-col md:flex-row justify-between items-end gap-6">
+      <div className="container mx-auto px-4 mb-6 flex flex-col md:flex-row justify-between items-end gap-6">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-100 text-brand-700 text-xs font-bold mb-4 uppercase tracking-widest">
             <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
@@ -61,8 +61,8 @@ export default function ExpressGiftsSlider() {
         </div>
       </div>
 
-      <div className="w-full pl-4 md:pl-[max(1rem,calc((100vw-1200px)/2))] pb-12">
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pr-8 pb-8 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="container mx-auto px-4 pb-12">
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           
           {cards.map((card, index) => (
             <motion.div
@@ -71,7 +71,7 @@ export default function ExpressGiftsSlider() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="snap-start shrink-0 w-[75vw] sm:w-[320px] group cursor-pointer"
+              className="snap-start shrink-0 w-[85vw] sm:w-[320px] group cursor-pointer"
             >
               {/* Ultra-Premium Card Body */}
               <div className="relative h-[380px] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2">
@@ -112,9 +112,6 @@ export default function ExpressGiftsSlider() {
               </div>
             </motion.div>
           ))}
-          
-          {/* Extra spacer to allow the last card to scroll fully to the left */}
-          <div className="shrink-0 w-4 sm:w-[10vw]"></div>
         </div>
       </div>
 

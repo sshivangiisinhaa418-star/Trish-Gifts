@@ -74,7 +74,7 @@ export default function Footer() {
         <div className="text-center text-[10px] sm:text-xs text-gray-500 font-light leading-relaxed space-y-4 pt-8 border-t border-gray-200">
           <p>Copyright©. All Rights Reserved.</p>
           <p>
-            *Our Comparable Value (or Comp. Value) prices are based on the prices at which similar items have been previously offered for sale by TRISH and/or other retailers. Some exclusions apply. Without promo code, customer can currently save 30%.
+            *Our Comparable Value (or Comp. Value) prices are based on the prices at which similar items have been previously offered for sale by QUMI and/or other retailers. Some exclusions apply. Without promo code, customer can currently save 30%.
           </p>
         </div>
       </div>

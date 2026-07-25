@@ -1,7 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Heart, Star } from "lucide-react";
 
 interface ProductCardProps {
+  id?: string;
   title: string;
   price: number;
   originalPrice?: number;
@@ -13,6 +15,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({
+  id = "1",
   title,
   price,
   originalPrice,
@@ -25,7 +28,7 @@ export default function ProductCard({
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
 
   return (
-    <div className="group relative flex flex-col h-full cursor-pointer">
+    <Link href={`/product/${id}`} className="group relative flex flex-col h-full cursor-pointer">
       {/* Image Container */}
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-gray-50 mb-3 border border-gray-100 transition-all duration-500 group-hover:shadow-lg group-hover:-translate-y-1">
         {/* Badges */}
@@ -43,7 +46,10 @@ export default function ProductCard({
         </div>
 
         {/* Wishlist Button - Fades in on hover for a cleaner resting state */}
-        <button className="absolute top-3 right-3 z-20 p-2.5 bg-white/80 backdrop-blur-md rounded-full text-gray-400 hover:text-red-500 hover:bg-white transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 shadow-sm hover:shadow-md">
+        <button 
+          onClick={(e) => e.preventDefault()} 
+          className="absolute top-3 right-3 z-20 p-2.5 bg-white/80 backdrop-blur-md rounded-full text-gray-400 hover:text-red-500 hover:bg-white transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 shadow-sm hover:shadow-md"
+        >
           <Heart className="w-4 h-4" />
         </button>
 
@@ -89,6 +95,6 @@ export default function ProductCard({
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

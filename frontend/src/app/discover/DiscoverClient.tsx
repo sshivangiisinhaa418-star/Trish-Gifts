@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import ProductCard from "@/components/ui/ProductCard";
 import { Sparkles, SlidersHorizontal, ChevronDown, X, Zap, Wallet, Star } from "lucide-react";
 import Link from "next/link";
+import { CATEGORIES, OCCASIONS, FESTIVALS, SPECIAL_DAYS } from "@/lib/constants/navigation";
 
 interface DiscoverClientProps {
   initialIntent: string;
@@ -27,9 +28,24 @@ const allProducts = [
   { id: 14, title: "Classic Pearl Necklace", category: "Jewelry", price: 4999, originalPrice: 6500, rating: 4.9, reviews: 76, image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80", tags: ["ANNIVERSARY", "WIFE", "MOTHER"], sameDayDelivery: false },
   { id: 15, title: "Artisan Chocolate Truffles", category: "Hampers", price: 799, rating: 4.6, reviews: 230, image: "https://images.unsplash.com/photo-1540331547168-8b63109225b7?w=800&q=80", tags: ["BIRTHDAY", "THANK YOU", "FRIEND", "VALENTINE'S DAY"], sameDayDelivery: true },
   { id: 16, title: "Fresh Lily Bouquet", category: "Flowers", price: 1099, originalPrice: 1299, rating: 4.7, reviews: 155, image: "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=800&q=80", tags: ["SYMPATHY", "GET WELL SOON", "MOTHER'S DAY"], sameDayDelivery: true },
+  
+  // Dummy products to test "Load More"
+  { id: 17, title: "Golden Edge Cufflinks", category: "Jewelry", price: 1299, originalPrice: 1599, rating: 4.5, reviews: 45, image: "https://images.unsplash.com/photo-1616428782635-4299b9fa17fc?w=800&q=80", tags: ["FATHER'S DAY", "HUSBAND", "CORPORATE"], sameDayDelivery: false },
+  { id: 18, title: "Vintage Wine Accessory Set", category: "Personalized", price: 1899, rating: 4.8, reviews: 110, image: "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=800&q=80", tags: ["HOUSEWARMING", "ANNIVERSARY", "FRIEND"], sameDayDelivery: true },
+  { id: 19, title: "Zen Garden Terrarium", category: "Flowers", price: 899, originalPrice: 1200, rating: 4.6, reviews: 88, image: "https://images.unsplash.com/photo-1599725427295-bcecb22fa979?w=800&q=80", tags: ["GET WELL SOON", "THANK YOU", "COLLEAGUE"], sameDayDelivery: false },
+  { id: 20, title: "Velvet Oud Eau de Parfum", category: "Fragrance", price: 3499, originalPrice: 4200, rating: 4.9, reviews: 320, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800&q=80", tags: ["ROMANCE", "PARTNER", "WIFE", "VALENTINE'S DAY"], sameDayDelivery: true },
+  { id: 21, title: "Gourmet Cheese Board", category: "Hampers", price: 2100, rating: 4.7, reviews: 145, image: "https://images.unsplash.com/photo-1631379482811-3e0f9b008d51?w=800&q=80", tags: ["CHRISTMAS", "DIWALI", "HOUSEWARMING"], sameDayDelivery: true },
+  { id: 22, title: "Personalized Journal Set", category: "Personalized", price: 699, originalPrice: 899, rating: 4.8, reviews: 75, image: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&q=80", tags: ["GRADUATION", "FIRST JOB", "COLLEAGUE"], sameDayDelivery: false },
+  { id: 23, title: "Opulent Tulip Box", category: "Flowers", price: 1599, rating: 4.9, reviews: 210, image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94?w=800&q=80", tags: ["MOTHER'S DAY", "WOMEN'S DAY", "WIFE"], sameDayDelivery: true },
+  { id: 24, title: "Crystal Drop Earrings", category: "Jewelry", price: 2899, originalPrice: 3500, rating: 4.7, reviews: 112, image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&q=80", tags: ["ANNIVERSARY", "BIRTHDAY", "DAUGHTER"], sameDayDelivery: false },
+  { id: 25, title: "Midnight Jasmine Diffuser", category: "Fragrance", price: 1099, rating: 4.6, reviews: 90, image: "https://images.unsplash.com/photo-1608528577891-eb0559ec5e42?w=800&q=80", tags: ["HOUSEWARMING", "MISS YOU", "SISTER"], sameDayDelivery: true },
+  { id: 26, title: "Celebration Champagne Hamper", category: "Hampers", price: 5999, originalPrice: 6500, rating: 4.9, reviews: 54, image: "https://images.unsplash.com/photo-1596450514735-111a2fe02935?w=800&q=80", tags: ["WEDDING", "ENGAGEMENT", "NEW YEAR"], sameDayDelivery: false },
+  { id: 27, title: "Monogrammed Silk Tie", category: "Personalized", price: 1499, originalPrice: 1999, rating: 4.8, reviews: 130, image: "https://images.unsplash.com/photo-1595123531649-6e3e5c9b68d4?w=800&q=80", tags: ["FATHER'S DAY", "MEN'S DAY", "HUSBAND"], sameDayDelivery: true },
+  { id: 28, title: "Sunset Carnation Bouquet", category: "Flowers", price: 899, rating: 4.5, reviews: 180, image: "https://images.unsplash.com/photo-1562229125-9fa8e7855e96?w=800&q=80", tags: ["CHEER UP", "FRIENDSHIP DAY", "SISTER"], sameDayDelivery: true },
+  { id: 29, title: "Gold Plated Bracelet", category: "Jewelry", price: 1799, originalPrice: 2199, rating: 4.8, reviews: 95, image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80", tags: ["VALENTINE'S DAY", "GIRLFRIEND", "WIFE"], sameDayDelivery: false },
+  { id: 30, title: "Relaxing Bath Bomb Set", category: "Hampers", price: 699, originalPrice: 850, rating: 4.7, reviews: 260, image: "https://images.unsplash.com/photo-1608248593875-2019741e4bc2?w=800&q=80", tags: ["GET WELL SOON", "THANK YOU", "MOTHER"], sameDayDelivery: true },
 ];
 
-const CATEGORIES = ['Flowers', 'Jewelry', 'Fragrance', 'Hampers', 'Personalized'];
 const SORT_OPTIONS = ['Recommended', 'Price: Low to High', 'Price: High to Low', 'Top Rated'];
 
 export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
@@ -42,6 +58,13 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
   const [sortBy, setSortBy] = useState('Recommended');
   const [isSortOpen, setIsSortOpen] = useState(false);
 
+  // Pagination State
+  const [visibleCount, setVisibleCount] = useState(15);
+
+  // Intents State
+  const [selectedIntents, setSelectedIntents] = useState<string[]>(initialIntent ? [initialIntent.toUpperCase().replace(/-/g, ' ')] : []);
+
+
   // Mobile Filter Drawer State
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -52,14 +75,22 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
     );
   };
 
+  const toggleIntent = (intent: string) => {
+    const upper = intent.toUpperCase();
+    setSelectedIntents(prev => 
+      prev.includes(upper) ? prev.filter(i => i !== upper) : [...prev, upper]
+    );
+  };
+
+  const activeIntents = selectedIntents.length > 0 ? selectedIntents : (initialIntent ? [initialIntent.toUpperCase().replace(/-/g, ' ')] : []);
+
   // Memoized Filtered & Sorted Products
   const displayProducts = useMemo(() => {
     let result = [...allProducts];
 
-    // 1. Filter by Intent (from URL)
-    if (initialIntent) {
-      const intentMatch = result.filter(p => p.tags.some(tag => tag.includes(initialIntent)));
-      if (intentMatch.length > 0) result = intentMatch;
+    // 1. Filter by Intent (from URL or selected)
+    if (activeIntents.length > 0) {
+      result = result.filter(p => p.tags.some(tag => activeIntents.some(intent => tag.includes(intent))));
     }
 
     // 2. Filter by Category
@@ -98,33 +129,38 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
     }
 
     return result;
-  }, [initialIntent, selectedCategories, sameDayOnly, priceRange, sortBy]);
+  }, [initialIntent, selectedCategories, sameDayOnly, priceRange, sortBy, activeIntents]);
 
   const displayIntent = initialIntent ? initialIntent.replace("-", " ") : "Any Occasion";
   const hasIntentFilter = !!initialIntent;
 
   return (
-    <div className="container mx-auto px-4 max-w-7xl">
+    <div className="w-full px-4 md:px-8 lg:px-12 2xl:px-16">
       
       {/* Page Header (Intent Context) */}
-      <div className="mb-8 md:mb-12 animate-fade-up">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-brand-500 animate-pulse" />
-          <span className="text-sm font-bold text-brand-500 uppercase tracking-widest">
-            {initialIntent ? `Curated for ${displayIntent}` : "Curated For You"}
-          </span>
+      {/* Page Header (Intent Context) */}
+      <div className="mb-8 md:mb-12 animate-fade-up flex flex-col xl:flex-row xl:items-end justify-between gap-8">
+        
+        {/* Left Side: Text Content */}
+        <div className="flex-1 max-w-3xl">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-brand-500 animate-pulse" />
+            <span className="text-sm font-bold text-brand-500 uppercase tracking-widest">
+              {initialIntent ? `Curated for ${displayIntent}` : "Curated For You"}
+            </span>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-heading font-medium text-gray-900 mb-4 tracking-tight capitalize">
+            {initialIntent ? `Gifts for ${displayIntent}` : "Gifts that speak volumes."}
+          </h1>
+          
+          <p className="text-lg text-gray-500 font-sans leading-relaxed">
+            Based on your intent, we've curated a selection of premium gifts sure to create an unforgettable moment.
+          </p>
         </div>
-        
-        <h1 className="text-4xl md:text-5xl font-heading font-medium text-gray-900 mb-4 tracking-tight capitalize">
-          {initialIntent ? `Gifts for ${displayIntent}` : "Gifts that speak volumes."}
-        </h1>
-        
-        <p className="text-lg text-gray-500 max-w-2xl font-sans leading-relaxed">
-          Based on your intent, we've curated a selection of premium gifts sure to create an unforgettable moment.
-        </p>
 
-        {/* Quick Action Filters - Replacing the static pills with functional smart buttons */}
-        <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-8">
+        {/* Right Side: Quick Action Filters */}
+        <div className="flex flex-wrap items-center xl:justify-end gap-3 shrink-0">
           
           <button 
             onClick={() => setSameDayOnly(!sameDayOnly)}
@@ -150,20 +186,23 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
             Top Rated
           </button>
 
-          {hasIntentFilter && (
-            <Link 
-              href="/discover" 
+          {activeIntents.length > 0 && (
+            <button 
+              onClick={() => {
+                setSelectedIntents([]);
+                // Optionally push to router without intent, but for client state this works
+              }}
               className="group flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-300 active:scale-95 ml-2"
             >
               <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" /> Clear Intent
-            </Link>
+            </button>
           )}
 
         </div>
       </div>
 
       {/* Desktop Toolbar (Full Width Alignment) */}
-      <div className="hidden lg:flex items-center justify-between mb-8 pb-4 border-b border-gray-100 animate-fade-up delay-200">
+      <div className="hidden lg:flex items-center justify-between mb-0 pb-4 border-b border-gray-100 animate-fade-up delay-200">
         <div className="text-sm text-gray-500 font-medium bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
           Showing <span className="font-bold text-gray-900">{displayProducts.length}</span> curated gifts
         </div>
@@ -216,7 +255,7 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
           ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
           <div className="lg:sticky lg:top-32">
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-100">
               <h3 className="font-heading font-medium text-lg text-gray-900">Filters</h3>
               <button className="lg:hidden hover:rotate-90 transition-transform duration-300" onClick={() => setIsMobileFilterOpen(false)}>
                 <X className="w-6 h-6 text-gray-900" />
@@ -228,7 +267,7 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
               {/* Filter Group: Category */}
               <div>
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Category</h4>
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2 hide-scrollbar">
                   {CATEGORIES.map((cat) => (
                     <label key={cat} className="flex items-center gap-3 cursor-pointer group">
                       <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-300 ${selectedCategories.includes(cat) ? 'bg-gray-900 border-gray-900 shadow-sm scale-110' : 'border-gray-300 group-hover:border-gray-900 group-hover:shadow-sm'}`}>
@@ -245,6 +284,32 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
                       />
                     </label>
                   ))}
+                </div>
+              </div>
+
+              {/* Filter Group: Occasions */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Occasions</h4>
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2 hide-scrollbar">
+                  {[...OCCASIONS, ...FESTIVALS, ...SPECIAL_DAYS].map((intent) => {
+                    const upper = intent.toUpperCase();
+                    return (
+                      <label key={intent} className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-300 ${selectedIntents.includes(upper) ? 'bg-gray-900 border-gray-900 shadow-sm scale-110' : 'border-gray-300 group-hover:border-gray-900 group-hover:shadow-sm'}`}>
+                          <svg className={`w-3 h-3 text-white transition-transform duration-300 ${selectedIntents.includes(upper) ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        <span className={`text-sm transition-all duration-300 ${selectedIntents.includes(upper) ? 'text-gray-900 font-bold translate-x-1' : 'text-gray-600 group-hover:text-gray-900'}`}>
+                          {intent}
+                        </span>
+                        <input 
+                          type="checkbox" 
+                          className="hidden" 
+                          checked={selectedIntents.includes(upper)}
+                          onChange={() => toggleIntent(intent)}
+                        />
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -315,8 +380,8 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
           
           {/* Grid */}
           {displayProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 md:gap-x-6 gap-y-10 md:gap-y-12">
-              {displayProducts.map((product, index) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 md:gap-x-6 xl:gap-x-8 gap-y-10 md:gap-y-12">
+              {displayProducts.slice(0, visibleCount).map((product, index) => (
                 <div key={product.id} className="animate-fade-up" style={{ animationDelay: `${(index % 4) * 100}ms` }}>
                   <ProductCard {...product} />
                 </div>
@@ -343,9 +408,12 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
           )}
           
           {/* Load More */}
-          {displayProducts.length > 0 && (
+          {displayProducts.length > visibleCount && (
             <div className="mt-20 flex justify-center">
-              <button className="group relative px-8 py-3.5 border border-gray-200 overflow-hidden rounded-full text-sm font-bold text-gray-900 uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-2xl hover:border-transparent hover:text-white active:scale-95 cursor-pointer">
+              <button 
+                onClick={() => setVisibleCount(prev => prev + 10)}
+                className="group relative px-8 py-3.5 border border-gray-200 overflow-hidden rounded-full text-sm font-bold text-gray-900 uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-2xl hover:border-transparent hover:text-white active:scale-95 cursor-pointer"
+              >
                 
                 {/* Main Gradient Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-brand-500 to-accent-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-20"></div>

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Outfit, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/lib/context/CartContext";
+import CartDrawer from "@/components/layout/CartDrawer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -12,8 +14,14 @@ const outfit = Outfit({
   subsets: ["latin"],
 });
 
+const cormorant = Cormorant_Garamond({
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "TRISH | Intent-Based Gifting",
+  title: "QUMI | Intent-Based Gifting",
   description: "Discover, personalize, purchase, and send perfect gifts based on the 'Who and Why' of gifting.",
 };
 
@@ -25,9 +33,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${outfit.variable} h-full antialiased`}
+      className={`${inter.variable} ${outfit.variable} ${cormorant.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        <CartProvider>
+          {children}
+          <CartDrawer />
+        </CartProvider>
+      </body>
     </html>
   );
 }

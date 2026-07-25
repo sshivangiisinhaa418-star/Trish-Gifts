@@ -61,7 +61,7 @@ export default function OffersBanner() {
               </div>
               
               <h3 className="text-3xl md:text-4xl font-heading font-medium text-white mb-3 leading-tight">
-                ₹500 TRISH <span className="text-rose-200 italic font-light">Wallet</span>
+                ₹500 QUMI <span className="text-rose-200 italic font-light">Wallet</span>
               </h3>
               
               <p className="text-rose-100/80 text-sm md:text-base mb-8 font-light">

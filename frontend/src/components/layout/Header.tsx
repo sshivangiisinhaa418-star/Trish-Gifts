@@ -1,28 +1,27 @@
+"use client";
+
 import Link from "next/link";
-import { Search, MapPin, Heart, ShoppingBag, User } from "lucide-react";
+import { Search, Heart, ShoppingBag, User } from "lucide-react";
+import GlobalNav from "./GlobalNav";
+import { useCart } from "@/lib/context/CartContext";
 
 export default function Header() {
+  const { cartItems, openCart } = useCart();
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-gray-100 animate-fade-up">
-      <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+      <div className="w-full px-4 md:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
         
-        {/* Left Section: Logo & Location */}
-        <div className="flex items-center gap-8 lg:gap-12">
+        {/* Left Section: Logo */}
+        <div className="flex items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
-            <span className="text-3xl font-heading font-black text-gray-900 tracking-tighter group-hover:opacity-80 transition-opacity">TRISH</span>
+            <span 
+              className="text-6xl text-[#500000] tracking-[0.05em] inline-block transform scale-x-[1.4] scale-y-[1.1] group-hover:opacity-80 transition-opacity origin-left font-light pl-2"
+              style={{ fontFamily: 'var(--font-cormorant), serif' }}
+            >
+              QUMI
+            </span>
           </Link>
-          
-          {/* Delivery Location - Hidden on smaller screens */}
-          <div className="hidden lg:flex items-center gap-2.5 cursor-pointer group">
-            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-              <MapPin className="w-4 h-4 text-gray-600" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Deliver to</span>
-              <span className="text-sm font-semibold text-gray-800 leading-none mt-1.5 group-hover:text-black transition-colors">Select Location</span>
-            </div>
-          </div>
         </div>
 
         {/* Center Section: Search Bar */}
@@ -55,16 +54,22 @@ export default function Header() {
             <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
           </button>
           
-          <button className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 flex items-center gap-1 group">
+          <button 
+            onClick={openCart}
+            className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 flex items-center gap-1 group"
+          >
             <div className="relative">
               <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="absolute -top-1.5 -right-2 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
-                0
-              </span>
+              {cartItems.length > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
+                  {cartItems.length}
+                </span>
+              )}
             </div>
           </button>
         </div>
       </div>
+      <GlobalNav />
     </header>
   );
 }
