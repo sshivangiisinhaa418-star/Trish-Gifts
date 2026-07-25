@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Heart, Star } from "lucide-react";
 
 interface ProductCardProps {
-  id?: string;
+  id?: string | number;
   title: string;
   price: number;
   originalPrice?: number;
