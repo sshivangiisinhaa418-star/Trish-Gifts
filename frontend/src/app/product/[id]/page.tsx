@@ -7,6 +7,8 @@ import Footer from "@/components/layout/Footer";
 import { getProductById } from "@/app/actions/store";
 import AddToCartForm from "./AddToCartForm";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
 

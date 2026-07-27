@@ -7,6 +7,8 @@ import OffersBanner from "@/components/home/OffersBanner";
 import Footer from "@/components/layout/Footer";
 import { getAllProducts } from "@/app/actions/store";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const products = await getAllProducts();
 

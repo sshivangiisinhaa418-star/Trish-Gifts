@@ -7,6 +7,8 @@ interface DiscoverPageProps {
   searchParams: { intent?: string; category?: string; recipient?: string };
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function DiscoverPage({ searchParams }: DiscoverPageProps) {
   const intentQuery = searchParams.intent?.toUpperCase() || "";
   
