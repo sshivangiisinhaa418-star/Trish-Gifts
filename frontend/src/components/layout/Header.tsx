@@ -70,16 +70,16 @@ export default function Header() {
             <Search className="w-5 h-5" />
           </button>
           
-          <button className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group">
+          <Link href="/wishlist" className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group">
             <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
             {wishlistItems.length > 0 && (
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
             )}
-          </button>
+          </Link>
           
-          <button className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
+          <Link href="/login" className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
             <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          </button>
+          </Link>
           
           <button 
             onClick={openCart}

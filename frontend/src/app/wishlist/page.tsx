@@ -5,13 +5,11 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import GlobalNav from "@/components/layout/GlobalNav";
 import ProductCard from "@/components/ui/ProductCard";
 
-// Mock Data
-const wishlistItems = [
-  { id: 2, title: "French Perfume Gift Box", category: "Fragrance", price: 1899, originalPrice: 2499, rating: 4.9, reviews: 89, image: "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?w=800&q=80", tags: ["BIRTHDAY", "MOTHER"], sameDayDelivery: false },
-  { id: 14, title: "Classic Pearl Necklace", category: "Jewelry", price: 4999, originalPrice: 6500, rating: 4.9, reviews: 76, image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80", tags: ["ANNIVERSARY", "WIFE"], sameDayDelivery: false },
-];
+import { useWishlist } from "@/lib/context/WishlistContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function WishlistPage() {
+  const { wishlistItems } = useWishlist();
   return (
     <div className="min-h-screen bg-[#faf9f6] flex flex-col">
       <header className="w-full bg-white border-b border-gray-100 hidden lg:block relative z-40">
@@ -34,20 +32,34 @@ export default function WishlistPage() {
         </div>
 
         {wishlistItems.length === 0 ? (
-          <div className="text-center py-20 bg-white border border-stone-200 rounded-3xl">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20 bg-white border border-stone-200 rounded-3xl shadow-sm"
+          >
             <h3 className="text-2xl text-gray-900 mb-4" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Your wishlist is empty</h3>
-            <Link href="/discover" className="inline-block px-8 py-3 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-colors">
+            <p className="text-gray-500 mb-8 font-light">Explore our curated collections to find the perfect gift.</p>
+            <Link href="/discover" className="inline-block px-8 py-3 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-colors shadow-sm">
               Discover Gifts
             </Link>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 md:gap-x-6 gap-y-10">
-            {wishlistItems.map((item, index) => (
-              <div key={item.id} className="animate-fade-up" style={{ animationDelay: `${(index % 4) * 100}ms` }}>
-                <ProductCard {...item} />
-              </div>
-            ))}
-          </div>
+          <motion.div layout className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 md:gap-x-6 gap-y-10">
+            <AnimatePresence>
+              {wishlistItems.map((item, index) => (
+                <motion.div 
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ProductCard {...item} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
       </div>

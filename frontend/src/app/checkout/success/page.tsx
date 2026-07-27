@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Copy, Gift, Send, Calendar, ArrowRight } from "lucide-react";
+import { CheckCircle2, Copy, Gift, Send, Calendar, ArrowRight, Sparkles, Package, Truck } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function OrderSuccessPage() {
   const [copied, setCopied] = useState(false);
@@ -30,15 +31,76 @@ export default function OrderSuccessPage() {
         </div>
 
         {/* Title */}
-        <h1 className="text-4xl md:text-5xl text-gray-900 mb-4 text-center" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
+        <motion.h1 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-4xl md:text-5xl text-gray-900 mb-4 text-center" 
+          style={{ fontFamily: 'var(--font-cormorant), serif' }}
+        >
           Gift Sent Successfully
-        </h1>
-        <p className="text-gray-500 font-light text-center max-w-md mb-2">
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-gray-500 font-light text-center max-w-md mb-8"
+        >
           Order #QUM-892410 has been confirmed. We've emailed you the receipt and tracking details.
-        </p>
+        </motion.p>
+
+        {/* Animated Tracking Timeline */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="w-full bg-white border border-stone-200 rounded-2xl p-8 mb-10 shadow-sm"
+        >
+          <h3 className="font-medium text-gray-900 mb-8 text-center">Order Status</h3>
+          <div className="relative flex justify-between items-center max-w-md mx-auto">
+            {/* Connecting Line */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-stone-100 -z-10 -translate-y-1/2"></div>
+            <motion.div 
+              initial={{ width: "0%" }}
+              animate={{ width: "30%" }}
+              transition={{ delay: 1, duration: 1 }}
+              className="absolute top-1/2 left-0 h-1 bg-green-500 -z-10 -translate-y-1/2"
+            ></motion.div>
+
+            {/* Step 1: Confirmed */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center shadow-md">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-bold text-gray-900 uppercase tracking-widest">Confirmed</span>
+            </div>
+
+            {/* Step 2: Customizing */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-10 h-10 bg-white border-2 border-green-500 text-green-500 rounded-full flex items-center justify-center relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
+                <Gift className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-bold text-gray-900 uppercase tracking-widest">Customizing</span>
+            </div>
+
+            {/* Step 3: Shipped */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-10 h-10 bg-stone-100 text-gray-400 rounded-full flex items-center justify-center border border-stone-200">
+                <Truck className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Shipped</span>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Digital Reveal Box */}
-        <div className="w-full bg-white border border-[#500000]/20 rounded-2xl p-6 md:p-8 mt-10 shadow-sm relative overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+          className="w-full bg-white border border-[#500000]/20 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden"
+        >
           {/* Decorative background element */}
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-rose-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
           

@@ -5,8 +5,7 @@ import Link from "next/link";
 import { Calendar as CalendarIcon, Package, User, Heart, Plus, Bell, ChevronRight, Gift } from "lucide-react";
 import GlobalNav from "@/components/layout/GlobalNav";
 
-// Mock Data
-const upcomingEvents = [
+const initialEvents = [
   { id: 1, name: "Sarah's Anniversary", date: "Oct 28, 2026", daysLeft: 3, relation: "Wife", intent: "Anniversary" },
   { id: 2, name: "Mom's Birthday", date: "Nov 15, 2026", daysLeft: 21, relation: "Mother", intent: "Birthday" },
 ];
@@ -18,6 +17,39 @@ const orderHistory = [
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<"calendar" | "orders" | "profile">("calendar");
+  const [events, setEvents] = useState(initialEvents);
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
+  
+  // New Event Form State
+  const [newEventName, setNewEventName] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newEventRelation, setNewEventRelation] = useState("Friend");
+  const [newEventIntent, setNewEventIntent] = useState("Birthday");
+
+  const handleAddEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEventName || !newEventDate) return;
+
+    // Calculate days left (mock calculation)
+    const eventDate = new Date(newEventDate);
+    const today = new Date();
+    const diffTime = Math.abs(eventDate.getTime() - today.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    setEvents(prev => [{
+      id: Math.random(),
+      name: newEventName,
+      date: eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      daysLeft: diffDays,
+      relation: newEventRelation,
+      intent: newEventIntent
+    }, ...prev]);
+
+    // Reset and close
+    setNewEventName("");
+    setNewEventDate("");
+    setIsAddingEvent(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#faf9f6] flex flex-col">
@@ -74,13 +106,55 @@ export default function AccountPage() {
                     <h2 className="text-2xl text-gray-900" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Your Gifting Calendar</h2>
                     <p className="text-sm text-gray-500 font-light mt-1">Never miss an important moment again.</p>
                   </div>
-                  <button className="px-5 py-2.5 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-colors flex items-center gap-2">
+                  <button onClick={() => setIsAddingEvent(!isAddingEvent)} className="px-5 py-2.5 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-colors flex items-center gap-2">
                     <Plus className="w-4 h-4" /> Add Event
                   </button>
                 </div>
 
+                {/* Add Event Form */}
+                {isAddingEvent && (
+                  <form onSubmit={handleAddEvent} className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm mb-8 animate-fade-up">
+                    <h3 className="text-xl text-gray-900 mb-4" style={{ fontFamily: 'var(--font-cormorant), serif' }}>New Gifting Event</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Event Name</label>
+                        <input type="text" required value={newEventName} onChange={(e) => setNewEventName(e.target.value)} placeholder="e.g. Dad's Retirement" className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Date</label>
+                        <input type="date" required value={newEventDate} onChange={(e) => setNewEventDate(e.target.value)} className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Recipient Relation</label>
+                        <select value={newEventRelation} onChange={(e) => setNewEventRelation(e.target.value)} className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900">
+                          <option>Wife</option>
+                          <option>Husband</option>
+                          <option>Mother</option>
+                          <option>Father</option>
+                          <option>Friend</option>
+                          <option>Colleague</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Occasion</label>
+                        <select value={newEventIntent} onChange={(e) => setNewEventIntent(e.target.value)} className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900">
+                          <option>Birthday</option>
+                          <option>Anniversary</option>
+                          <option>Wedding</option>
+                          <option>Thank You</option>
+                          <option>Congratulations</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <button type="button" onClick={() => setIsAddingEvent(false)} className="px-5 py-2.5 text-gray-600 hover:text-gray-900 text-xs font-bold uppercase tracking-widest">Cancel</button>
+                      <button type="submit" className="px-5 py-2.5 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">Save Event</button>
+                    </div>
+                  </form>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {upcomingEvents.map((event) => (
+                  {events.map((event) => (
                     <div key={event.id} className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-24 h-24 bg-brand-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
                       

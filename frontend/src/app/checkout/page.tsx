@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/lib/context/CartContext";
 import Link from "next/link";
-import { ArrowLeft, Check, Lock, ChevronRight, Gift, Calendar, MessageSquare } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Lock, ChevronRight, Gift, Calendar, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type CheckoutStep = 1 | 2 | 3 | 4;
@@ -215,17 +215,17 @@ export default function CheckoutPage() {
                       
                       {/* Gifting Add-ons indicator */}
                       <div className="flex flex-col gap-1 mt-2">
-                        {item.giftingOptions.giftWrap && (
+                        {item.giftingOptions?.giftWrap && (
                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
                             <Gift className="w-3 h-3" /> Wrap (+₹250)
                           </span>
                         )}
-                        {item.giftingOptions.giftMessage && (
+                        {item.giftingOptions?.giftMessage && (
                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
                             <MessageSquare className="w-3 h-3" /> Note Added
                           </span>
                         )}
-                        {item.giftingOptions.deliveryDate && (
+                        {item.giftingOptions?.deliveryDate && (
                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
                             <Calendar className="w-3 h-3" /> Delivery: {item.giftingOptions.deliveryDate}
                           </span>
@@ -266,5 +266,3 @@ export default function CheckoutPage() {
   );
 }
 
-// Missing Lucide import for ArrowRight
-import { ArrowRight } from "lucide-react";

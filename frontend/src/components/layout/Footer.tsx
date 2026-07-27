@@ -11,12 +11,12 @@ export default function Footer() {
             <h3 className="font-bold text-gray-900 mb-4">Our Company</h3>
             <ul className="space-y-3 text-sm text-gray-600 font-light">
               <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Blog</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Terms of Use</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">California Supply Chain Act</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Supplier Code of Conduct</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Patents</Link></li>
+              <li><Link href="/journal" className="hover:text-primary transition-colors">Blog</Link></li>
+              <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Use</Link></li>
+              <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/supply-chain" className="hover:text-primary transition-colors">California Supply Chain Act</Link></li>
+              <li><Link href="/supplier-code" className="hover:text-primary transition-colors">Supplier Code of Conduct</Link></li>
+              <li><Link href="/patents" className="hover:text-primary transition-colors">Patents</Link></li>
             </ul>
           </div>
 
@@ -24,12 +24,12 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-gray-900 mb-4">Help</h3>
             <ul className="space-y-3 text-sm text-gray-600 font-light">
-              <li><Link href="#" className="hover:text-primary transition-colors">Apparel Size Charts</Link></li>
+              <li><Link href="/size-charts" className="hover:text-primary transition-colors">Apparel Size Charts</Link></li>
               <li><Link href="/concierge" className="hover:text-primary transition-colors">TRISH Concierge (Support)</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Frequently Asked Questions</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">How to Order</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Manage Personal Information</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Site Map</Link></li>
+              <li><Link href="/faq" className="hover:text-primary transition-colors">Frequently Asked Questions</Link></li>
+              <li><Link href="/how-to-order" className="hover:text-primary transition-colors">How to Order</Link></li>
+              <li><Link href="/manage-info" className="hover:text-primary transition-colors">Manage Personal Information</Link></li>
+              <li><Link href="/sitemap" className="hover:text-primary transition-colors">Site Map</Link></li>
             </ul>
           </div>
 
@@ -37,10 +37,10 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-gray-900 mb-4">Info</h3>
             <ul className="space-y-3 text-sm text-gray-600 font-light">
-              <li><Link href="#" className="hover:text-primary transition-colors">My Account</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Order Tracking</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Shipping, Returns & Fees</Link></li>
-              <li className="pt-4"><Link href="#" className="hover:text-primary transition-colors">Get Gifts.com App</Link></li>
+              <li><Link href="/account" className="hover:text-primary transition-colors">My Account</Link></li>
+              <li><Link href="/order-tracking" className="hover:text-primary transition-colors">Order Tracking</Link></li>
+              <li><Link href="/shipping-returns" className="hover:text-primary transition-colors">Shipping, Returns & Fees</Link></li>
+              <li className="pt-4"><Link href="/app" className="hover:text-primary transition-colors">Get Gifts.com App</Link></li>
             </ul>
           </div>
 
