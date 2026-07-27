@@ -131,7 +131,7 @@ export default function OrderSuccessPage() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Summary Details */}
         <div className="w-full mt-10 bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
@@ -173,4 +173,3 @@ export default function OrderSuccessPage() {
 }
 
 // Missing Lucide import for Sparkles
-import { Sparkles } from "lucide-react";

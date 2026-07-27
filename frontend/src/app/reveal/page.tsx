@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Sparkles, Gift } from "lucide-react";
+import Link from "next/link";
+import { Sparkles, Gift, ArrowLeft } from "lucide-react";
 import confetti from "canvas-confetti";
 
 export default function DigitalRevealPage() {
