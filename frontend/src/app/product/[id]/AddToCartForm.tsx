@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { Plus, Minus, Gift } from "lucide-react";
 import { useCart } from "@/lib/context/CartContext";
-import { Product } from "@/lib/data/products";
-
-export default function AddToCartForm({ product }: { product: Product }) {
+export default function AddToCartForm({ product }: { product: any }) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
