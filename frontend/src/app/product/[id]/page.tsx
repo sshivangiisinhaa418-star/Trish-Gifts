@@ -147,7 +147,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                     </span>
                   </summary>
                   <p className="text-gray-500 font-light leading-relaxed pb-5 text-sm">
-                    Complimentary express shipping on all orders above ₹2000. Delivered in our signature QUMI premium packaging. For hygiene reasons, fragrance products cannot be returned once the seal is broken.
+                    Complimentary express shipping on all orders above ₹2000. Delivered in our signature TRISH premium packaging. For hygiene reasons, fragrance products cannot be returned once the seal is broken.
                   </p>
                 </details>
               </div>

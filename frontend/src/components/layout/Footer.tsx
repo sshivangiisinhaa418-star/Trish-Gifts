@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-gray-900 mb-4">Our Company</h3>
             <ul className="space-y-3 text-sm text-gray-600 font-light">
-              <li><Link href="#" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Blog</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Terms of Use</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
@@ -25,7 +25,7 @@ export default function Footer() {
             <h3 className="font-bold text-gray-900 mb-4">Help</h3>
             <ul className="space-y-3 text-sm text-gray-600 font-light">
               <li><Link href="#" className="hover:text-primary transition-colors">Apparel Size Charts</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Contact Us</Link></li>
+              <li><Link href="/concierge" className="hover:text-primary transition-colors">TRISH Concierge (Support)</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Frequently Asked Questions</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">How to Order</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Manage Personal Information</Link></li>
@@ -74,7 +74,7 @@ export default function Footer() {
         <div className="text-center text-[10px] sm:text-xs text-gray-500 font-light leading-relaxed space-y-4 pt-8 border-t border-gray-200">
           <p>Copyright©. All Rights Reserved.</p>
           <p>
-            *Our Comparable Value (or Comp. Value) prices are based on the prices at which similar items have been previously offered for sale by QUMI and/or other retailers. Some exclusions apply. Without promo code, customer can currently save 30%.
+            *Our Comparable Value (or Comp. Value) prices are based on the prices at which similar items have been previously offered for sale by TRISH and/or other retailers. Some exclusions apply. Without promo code, customer can currently save 30%.
           </p>
         </div>
       </div>

@@ -119,12 +119,12 @@ export default function GlobalNav() {
                             key={idx}
                             href={`/discover?${nav.type}=${extra.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                             onClick={() => { setActiveTab(null); setExpandedExplore(null); }}
-                            className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-lg ${extra.color}`}
+                            className="group flex items-center gap-3.5 p-3.5 rounded-xl border border-stone-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-[#500000] hover:shadow-md"
                           >
-                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-lg">
+                            <div className="w-10 h-10 rounded-full bg-stone-50 border border-stone-100 flex items-center justify-center shadow-sm text-lg group-hover:bg-[#500000]/5 transition-colors">
                               {extra.icon}
                             </div>
-                            <span className="text-sm font-bold tracking-tight">{extra.label}</span>
+                            <span className="text-[13px] font-medium text-gray-700 group-hover:text-gray-900 tracking-wide">{extra.label}</span>
                           </Link>
                         ))}
                       </div>

@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Star } from "lucide-react";
+import { Heart, Star, ShoppingBag } from "lucide-react";
+import { useWishlist } from "@/lib/context/WishlistContext";
+import { useCart } from "@/lib/context/CartContext";
 
 interface ProductCardProps {
   id?: string | number;
@@ -25,7 +29,43 @@ export default function ProductCard({
   tags = [],
   sameDayDelivery = false,
 }: ProductCardProps) {
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
+  
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+  const isLiked = isInWishlist(id);
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toggleWishlist({
+      id: Number(id),
+      title,
+      price,
+      originalPrice,
+      rating,
+      reviews,
+      image,
+      tags,
+      sameDayDelivery,
+      category: "Catalog" // Fallback since category isn't passed in props
+    });
+  };
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addToCart({
+      title,
+      price,
+      image,
+      quantity: 1,
+      giftingOptions: {
+        giftWrap: false,
+        greetingCard: false,
+        giftMessage: "",
+        deliveryDate: ""
+      }
+    });
+  };
 
   return (
     <Link href={`/product/${id}`} className="group relative flex flex-col h-full cursor-pointer">
@@ -45,12 +85,16 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* Wishlist Button - Fades in on hover for a cleaner resting state */}
+        {/* Wishlist Button */}
         <button 
-          onClick={(e) => e.preventDefault()} 
-          className="absolute top-3 right-3 z-20 p-2.5 bg-white/80 backdrop-blur-md rounded-full text-gray-400 hover:text-red-500 hover:bg-white transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 shadow-sm hover:shadow-md"
+          onClick={handleWishlistClick} 
+          className={`absolute top-3 right-3 z-20 p-2.5 backdrop-blur-md rounded-full transition-all duration-300 shadow-sm hover:shadow-md ${
+            isLiked 
+              ? "bg-white text-red-500 opacity-100" 
+              : "bg-white/80 text-gray-400 hover:text-red-500 hover:bg-white opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+          }`}
         >
-          <Heart className="w-4 h-4" />
+          <Heart className={`w-4 h-4 ${isLiked ? "fill-red-500" : ""}`} />
         </button>
 
         <img
@@ -61,6 +105,16 @@ export default function ProductCard({
         
         {/* Soft overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+        
+        {/* Quick Add Button */}
+        <div className="absolute bottom-4 left-4 right-4 z-20 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          <button 
+            onClick={handleQuickAdd}
+            className="w-full py-3 bg-white/95 backdrop-blur-md hover:bg-[#500000] text-gray-900 hover:text-white text-xs font-bold uppercase tracking-widest rounded-full flex items-center justify-center gap-2 shadow-sm transition-colors"
+          >
+            <ShoppingBag className="w-4 h-4" /> Quick Add
+          </button>
+        </div>
       </div>
 
       {/* Content Below Image (Borderless Style) */}

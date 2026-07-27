@@ -48,8 +48,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const cartTotal = cartItems.reduce((total, item) => {
     let itemTotal = item.price * item.quantity;
-    if (item.giftingOptions.giftWrap) itemTotal += 250;
-    if (item.giftingOptions.greetingCard) itemTotal += 150;
+    if (item.giftingOptions?.giftWrap) itemTotal += 250;
+    if (item.giftingOptions?.greetingCard) itemTotal += 150;
     return total + itemTotal;
   }, 0);
 
