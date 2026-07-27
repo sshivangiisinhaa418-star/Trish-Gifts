@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, Gift, Heart, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const cards = [
   {
@@ -103,10 +104,10 @@ export default function ExpressGiftsSlider() {
                   
                   <div className="w-full h-[1px] bg-white/20 mb-4"></div>
                   
-                  <button className="flex items-center gap-2 text-sm font-bold text-white group/btn">
+                  <Link href="/discover" className="flex items-center gap-2 text-sm font-bold text-white group/btn w-fit">
                     Shop Now 
                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform duration-300" />
-                  </button>
+                  </Link>
                 </div>
 
               </div>

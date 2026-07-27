@@ -1,6 +1,7 @@
 "use client";
 
 import { Percent, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function OffersBanner() {
   return (
@@ -34,10 +35,10 @@ export default function OffersBanner() {
                 Use code <span className="font-bold text-white bg-white/20 px-2 py-0.5 rounded border border-white/30">PREMIUM20</span> at checkout for exclusive luxury gifts.
               </p>
               
-              <button className="flex items-center gap-2 text-sm font-bold text-gray-900 bg-white px-6 py-3 rounded-full hover:bg-gray-100 transition-colors group/btn w-fit">
+              <Link href="/discover" className="flex items-center gap-2 text-sm font-bold text-gray-900 bg-white px-6 py-3 rounded-full hover:bg-gray-100 transition-colors group/btn w-fit">
                 Claim Offer
                 <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -68,10 +69,10 @@ export default function OffersBanner() {
                 Valid on all orders above ₹2,999. Credited instantly to your account.
               </p>
               
-              <button className="flex items-center gap-2 text-sm font-bold text-rose-900 bg-white px-6 py-3 rounded-full hover:bg-rose-50 transition-colors group/btn w-fit">
+              <Link href="/discover" className="flex items-center gap-2 text-sm font-bold text-rose-900 bg-white px-6 py-3 rounded-full hover:bg-rose-50 transition-colors group/btn w-fit">
                 Know More
                 <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </button>
+              </Link>
             </div>
           </div>
 

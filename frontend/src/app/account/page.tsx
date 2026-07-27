@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar as CalendarIcon, Package, User, Heart, Plus, Bell, ChevronRight, Gift } from "lucide-react";
+import { Calendar as CalendarIcon, Package, User, Heart, Plus, Bell, ChevronRight, Gift, LogOut } from "lucide-react";
 import GlobalNav from "@/components/layout/GlobalNav";
+import { logout } from "@/app/actions/auth";
+import { createBrowserClient } from "@supabase/ssr";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 const initialEvents = [
   { id: 1, name: "Sarah's Anniversary", date: "Oct 28, 2026", daysLeft: 3, relation: "Wife", intent: "Anniversary" },
@@ -19,6 +22,19 @@ export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<"calendar" | "orders" | "profile">("calendar");
   const [events, setEvents] = useState(initialEvents);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
   
   // New Event Form State
   const [newEventName, setNewEventName] = useState("");
@@ -92,6 +108,12 @@ export default function AccountPage() {
                 <Heart className="w-4 h-4" />
                 <span className="text-sm font-medium">My Wishlist</span>
               </Link>
+              <form action={logout} className="mt-8">
+                <button type="submit" className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all w-full text-left">
+                  <LogOut className="w-4 h-4" />
+                  <span className="text-sm font-medium">Logout</span>
+                </button>
+              </form>
             </nav>
           </div>
 
@@ -215,7 +237,42 @@ export default function AccountPage() {
               <div className="animate-fade-up">
                 <h2 className="text-2xl text-gray-900 mb-8" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Profile Settings</h2>
                 <div className="bg-white border border-stone-200 rounded-2xl p-8 shadow-sm">
-                  <p className="text-gray-500 font-light">Account details, addresses, and payment methods will be managed here.</p>
+                  {user ? (
+                    <div className="space-y-6">
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Name</label>
+                        <p className="text-gray-900 font-medium text-lg">
+                          {user.user_metadata?.full_name || `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() || 'Valued Client'}
+                        </p>
+                      </div>
+                      <div className="h-px bg-stone-100 w-full my-4"></div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Email Address</label>
+                        <p className="text-gray-900 font-medium">{user.email}</p>
+                      </div>
+                      <div className="h-px bg-stone-100 w-full my-4"></div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Sign-in Method</label>
+                        <p className="text-gray-900 font-medium capitalize">{user.app_metadata?.provider || 'Email'}</p>
+                      </div>
+                      
+                      {user.email?.toLowerCase() === 'mayankrajdto@gmail.com' && (
+                        <>
+                          <div className="h-px bg-stone-100 w-full my-4"></div>
+                          <div className="pt-4">
+                            <Link 
+                              href="/admin"
+                              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#500000] text-white rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all w-full md:w-auto"
+                            >
+                              Open Admin Dashboard
+                            </Link>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 font-light">Loading profile details...</p>
+                  )}
                 </div>
               </div>
             )}

@@ -4,23 +4,12 @@ import { motion } from "framer-motion";
 import ProductCard from "@/components/ui/ProductCard";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useRef } from "react";
-
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviews: number;
-  image: string;
-  tags?: string[];
-  sameDayDelivery?: boolean;
-}
+import Link from "next/link";
 
 interface ProductCarouselProps {
   title: string;
   subtitle?: string;
-  products: Product[];
+  products: any[];
   viewAllLink?: string;
 }
 
@@ -60,9 +49,9 @@ export default function ProductCarousel({ title, subtitle, products, viewAllLink
             >
               <ArrowRight className="w-4 h-4" />
             </button>
-            <button className="text-sm font-bold text-gray-900 uppercase tracking-widest hover:text-brand-500 transition-colors ml-4">
+            <Link href={viewAllLink} className="text-sm font-bold text-gray-900 uppercase tracking-widest hover:text-brand-500 transition-colors ml-4">
               View All
-            </button>
+            </Link>
           </div>
         </div>
 

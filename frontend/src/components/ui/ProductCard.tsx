@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Image from "next/image";
 import Link from "next/link";
@@ -6,39 +6,49 @@ import { Heart, Star, ShoppingBag } from "lucide-react";
 import { useWishlist } from "@/lib/context/WishlistContext";
 import { useCart } from "@/lib/context/CartContext";
 
-interface ProductCardProps {
+export interface ProductCardProps {
   id?: string | number;
-  title: string;
+  title?: string; // Old dummy prop
+  name?: string;  // New DB prop
   price: number;
-  originalPrice?: number;
-  rating: number;
-  reviews: number;
-  image: string;
+  originalPrice?: number; // Old dummy prop
+  compare_at_price?: number | null; // New DB prop
+  rating?: number;
+  reviews?: number;
+  image?: string; // Old dummy prop
+  images?: string[]; // New DB prop
   tags?: string[];
+  intent?: string; // New DB prop
   sameDayDelivery?: boolean;
 }
 
-export default function ProductCard({
-  id = "1",
-  title,
-  price,
-  originalPrice,
-  rating,
-  reviews,
-  image,
-  tags = [],
-  sameDayDelivery = false,
-}: ProductCardProps) {
+export default function ProductCard(props: ProductCardProps) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
   
+  // Normalize old dummy props vs new DB props
+  const id = props.id || "1";
+  const title = props.name || props.title || "Untitled Product";
+  const price = props.price || 0;
+  const originalPrice = props.compare_at_price || props.originalPrice;
+  const image = (props.images && props.images.length > 0) ? props.images[0] : (props.image || "");
+  const rating = props.rating || 5;
+  const reviews = props.reviews || 24;
+  const sameDayDelivery = props.sameDayDelivery || false;
+  
+  // Tags normalization
+  let tags = props.tags || [];
+  if (props.intent && tags.length === 0) {
+    tags = [props.intent];
+  }
+
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
   const isLiked = isInWishlist(id);
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     toggleWishlist({
-      id: Number(id),
+      id: Number(id) || 1,
       title,
       price,
       originalPrice,
@@ -47,7 +57,7 @@ export default function ProductCard({
       image,
       tags,
       sameDayDelivery,
-      category: "Catalog" // Fallback since category isn't passed in props
+      category: "Catalog"
     });
   };
 
@@ -97,11 +107,15 @@ export default function ProductCard({
           <Heart className={`w-4 h-4 ${isLiked ? "fill-red-500" : ""}`} />
         </button>
 
-        <img
-          src={image}
-          alt={title}
-          className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700 ease-out"
-        />
+        {image ? (
+          <img
+            src={image}
+            alt={title}
+            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700 ease-out"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400 bg-stone-100">No Image</div>
+        )}
         
         {/* Soft overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
@@ -122,8 +136,8 @@ export default function ProductCard({
         
         {/* Tags */}
         {tags.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-[10px] font-semibold text-brand-600 uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 mb-1.5 overflow-hidden">
+            <span className="text-[10px] font-semibold text-brand-600 uppercase tracking-widest truncate">
               {tags.join(" • ")}
             </span>
           </div>

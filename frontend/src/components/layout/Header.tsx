@@ -1,14 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Heart, ShoppingBag, User, Sparkles } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, Sparkles, Settings } from "lucide-react";
 import GlobalNav from "./GlobalNav";
 import { useCart } from "@/lib/context/CartContext";
 import { useWishlist } from "@/lib/context/WishlistContext";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const { cartItems, openCart } = useCart();
   const { wishlistItems } = useWishlist();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-gray-100 animate-fade-up">
@@ -77,9 +93,15 @@ export default function Header() {
             )}
           </Link>
           
-          <Link href="/login" className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
-            <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <Link href={user ? "/account" : "/login"} className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
+            <User className={`w-5 h-5 group-hover:scale-110 transition-transform ${user ? 'text-[#500000] fill-[#500000]/10' : ''}`} />
           </Link>
+
+          {user?.email?.toLowerCase() === 'mayankrajdto@gmail.com' && (
+            <Link href="/admin" className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
+              <Settings className="w-5 h-5 group-hover:scale-110 transition-transform text-[#500000]" />
+            </Link>
+          )}
           
           <button 
             onClick={openCart}

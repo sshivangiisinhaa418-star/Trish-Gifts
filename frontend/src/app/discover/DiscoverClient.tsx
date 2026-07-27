@@ -8,13 +8,12 @@ import { CATEGORIES, OCCASIONS, FESTIVALS, SPECIAL_DAYS } from "@/lib/constants/
 
 interface DiscoverClientProps {
   initialIntent: string;
+  initialProducts: any[];
 }
-
-import { allProducts } from "@/lib/data/products";
 
 const SORT_OPTIONS = ['Recommended', 'Price: Low to High', 'Price: High to Low', 'Top Rated'];
 
-export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
+export default function DiscoverClient({ initialIntent, initialProducts }: DiscoverClientProps) {
   // Filters State
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sameDayOnly, setSameDayOnly] = useState(false);
@@ -52,16 +51,20 @@ export default function DiscoverClient({ initialIntent }: DiscoverClientProps) {
 
   // Memoized Filtered & Sorted Products
   const displayProducts = useMemo(() => {
-    let result = [...allProducts];
+    let result = [...initialProducts];
 
     // 1. Filter by Intent (from URL or selected)
     if (activeIntents.length > 0) {
-      result = result.filter(p => p.tags.some(tag => activeIntents.some(intent => tag.includes(intent))));
+      result = result.filter(p => {
+        const intentMatch = p.intent && activeIntents.includes(p.intent.toUpperCase());
+        const tagMatch = p.tags && p.tags.some((tag: string) => activeIntents.some(intent => tag.includes(intent)));
+        return intentMatch || tagMatch;
+      });
     }
 
-    // 2. Filter by Category
+    // 2. Filter by Category (using intent as category for DB items, or category for dummy items)
     if (selectedCategories.length > 0) {
-      result = result.filter(p => selectedCategories.includes(p.category));
+      result = result.filter(p => selectedCategories.includes(p.category || p.intent));
     }
 
     // 3. Filter by Same Day Delivery

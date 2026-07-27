@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useCart } from "@/lib/context/CartContext";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Lock, ChevronRight, Gift, Calendar, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { submitCheckout } from "@/app/actions/forms";
 
 type CheckoutStep = 1 | 2 | 3 | 4;
 
@@ -18,14 +19,26 @@ export default function CheckoutPage() {
   const [recipientName, setRecipientName] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [senderName, setSenderName] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentStep < 4) {
       setCurrentStep((prev) => (prev + 1) as CheckoutStep);
     } else {
-      // Final submit - go to success page
-      router.push("/checkout/success");
+      // Final submit
+      startTransition(async () => {
+        const formData = new FormData();
+        formData.append('recipient_name', recipientName);
+        formData.append('recipient_email', email);
+        formData.append('recipient_address', recipientAddress);
+        formData.append('total_amount', cartTotal.toString());
+        
+        const result = await submitCheckout(formData);
+        if (result?.error) {
+          alert(result.error);
+        }
+      });
     }
   };
 
@@ -188,8 +201,8 @@ export default function CheckoutPage() {
               </div>
 
               <form onSubmit={handleNextStep}>
-                <button type="submit" className="w-full py-4 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group">
-                  Pay ₹{cartTotal.toLocaleString()} & Send Gift <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <button type="submit" disabled={isPending} className="w-full py-4 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed">
+                  {isPending ? 'Processing...' : `Pay ₹${cartTotal.toLocaleString()} & Send Gift`} {!isPending && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                 </button>
               </form>
             </div>

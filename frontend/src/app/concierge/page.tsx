@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Image from "next/image";
 import { Plus, Minus, Phone, Mail, Clock } from "lucide-react";
+import { submitConcierge } from "@/app/actions/forms";
 
 export default function ConciergePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [isPending, startTransition] = useTransition();
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = (formData: FormData) => {
+    startTransition(async () => {
+      const res = await submitConcierge(formData);
+      if (res?.error) {
+        alert(res.error);
+      } else {
+        setSuccess(true);
+      }
+    });
+  };
 
   const faqs = [
     {
@@ -74,26 +88,32 @@ export default function ConciergePage() {
                   </p>
                 </div>
 
-                <form className="space-y-8 mb-16" onSubmit={(e) => e.preventDefault()}>
+                {success ? (
+                  <div className="bg-green-50 text-green-800 p-8 text-center rounded-2xl mb-16">
+                    <h3 className="text-xl font-medium mb-2">Message Sent</h3>
+                    <p className="font-light">Thank you for reaching out. Our concierge will be in touch shortly.</p>
+                  </div>
+                ) : (
+                <form action={handleSubmit} className="space-y-8 mb-16">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-2 border-b border-gray-200 pb-2">
                       <label className="text-xs font-bold tracking-widest text-gray-400 uppercase block">First Name</label>
-                      <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300" placeholder="Jane" />
+                      <input type="text" name="first_name" required className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300" placeholder="Jane" />
                     </div>
                     <div className="space-y-2 border-b border-gray-200 pb-2">
                       <label className="text-xs font-bold tracking-widest text-gray-400 uppercase block">Last Name</label>
-                      <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300" placeholder="Doe" />
+                      <input type="text" name="last_name" required className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300" placeholder="Doe" />
                     </div>
                   </div>
 
                   <div className="space-y-2 border-b border-gray-200 pb-2">
                     <label className="text-xs font-bold tracking-widest text-gray-400 uppercase block">Email Address</label>
-                    <input type="email" className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300" placeholder="jane@example.com" />
+                    <input type="email" name="email" required className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300" placeholder="jane@example.com" />
                   </div>
 
                   <div className="space-y-2 border-b border-gray-200 pb-2">
                     <label className="text-xs font-bold tracking-widest text-gray-400 uppercase block">Inquiry Type</label>
-                    <select className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light appearance-none">
+                    <select name="type" className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light appearance-none">
                       <option>Order Status & Tracking</option>
                       <option>Gifting Advice</option>
                       <option>Corporate Gifting</option>
@@ -104,13 +124,14 @@ export default function ConciergePage() {
 
                   <div className="space-y-2 border-b border-gray-200 pb-2">
                     <label className="text-xs font-bold tracking-widest text-gray-400 uppercase block">Message</label>
-                    <textarea rows={4} className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300 resize-none" placeholder="How may we assist you today?"></textarea>
+                    <textarea name="message" required rows={4} className="w-full bg-transparent border-none focus:ring-0 p-0 text-gray-900 font-light placeholder:text-gray-300 resize-none" placeholder="How may we assist you today?"></textarea>
                   </div>
 
-                  <button type="submit" className="px-10 py-4 bg-[#500000] text-white text-xs font-bold tracking-widest uppercase hover:bg-gray-900 transition-colors duration-300">
-                    Send Message
+                  <button type="submit" disabled={isPending} className="px-10 py-4 bg-[#500000] text-white text-xs font-bold tracking-widest uppercase hover:bg-gray-900 transition-colors duration-300 disabled:opacity-70 disabled:cursor-not-allowed">
+                    {isPending ? 'Sending...' : 'Send Message'}
                   </button>
                 </form>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-12 border-t border-gray-100">
                   <div>
