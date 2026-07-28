@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { useTransition, useState } from "react";
 import { login } from "@/app/actions/auth";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -22,10 +22,7 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = async (provider: 'google' | 'apple') => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
