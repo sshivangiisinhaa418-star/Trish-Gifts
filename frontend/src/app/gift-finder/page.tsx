@@ -58,7 +58,7 @@ export default async function GiftFinderPage() {
           <div className="absolute inset-5 md:inset-10 border-[1px] border-[#500000]/5 pointer-events-none rounded-lg" />
           
           <div className="w-full max-w-3xl relative z-10 bg-white/50 backdrop-blur-sm p-8 md:p-12 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white">
-            <GiftWizard products={products} />
+            <GiftWizard />
           </div>
         </div>
       </main>
