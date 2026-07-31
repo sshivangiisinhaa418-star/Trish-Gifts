@@ -20,20 +20,57 @@ const orderHistory = [
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<"calendar" | "orders" | "profile">("calendar");
-  const [events, setEvents] = useState(initialEvents);
+  const [events, setEvents] = useState<any[]>([]);
+  const [dbOrders, setDbOrders] = useState<any[]>([]);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [supabase, setSupabase] = useState<any>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createBrowserClient(
+    const init = async () => {
+      const supabaseClient = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
-      const { data: { user } } = await supabase.auth.getUser();
+      setSupabase(supabaseClient);
+      
+      const { data: { user } } = await supabaseClient.auth.getUser();
       setUser(user);
+
+      if (user) {
+        // Fetch events
+        const { data: eventsData } = await supabaseClient
+          .from('calendar_events')
+          .select('*')
+          .order('date', { ascending: true });
+        
+        if (eventsData) {
+          const formatted = eventsData.map(e => {
+            const diffTime = Math.max(0, new Date(e.date).getTime() - new Date().getTime());
+            return {
+              id: e.id,
+              name: e.title,
+              date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              daysLeft: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+              relation: e.relation || 'Gift',
+              intent: e.intent || 'Event'
+            };
+          });
+          setEvents(formatted);
+        }
+
+        // Fetch orders
+        const { data: ordersData } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (ordersData) {
+          setDbOrders(ordersData);
+        }
+      }
     };
-    fetchUser();
+    init();
   }, []);
   
   // New Event Form State
@@ -42,24 +79,30 @@ export default function AccountPage() {
   const [newEventRelation, setNewEventRelation] = useState("Friend");
   const [newEventIntent, setNewEventIntent] = useState("Birthday");
 
-  const handleAddEvent = (e: React.FormEvent) => {
+  const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEventName || !newEventDate) return;
+    if (!newEventName || !newEventDate || !user || !supabase) return;
 
-    // Calculate days left (mock calculation)
-    const eventDate = new Date(newEventDate);
-    const today = new Date();
-    const diffTime = Math.abs(eventDate.getTime() - today.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    setEvents(prev => [{
-      id: Math.random(),
-      name: newEventName,
-      date: eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      daysLeft: diffDays,
+    const { data, error } = await supabase.from('calendar_events').insert({
+      user_id: user.id,
+      title: newEventName,
+      date: newEventDate,
       relation: newEventRelation,
       intent: newEventIntent
-    }, ...prev]);
+    }).select().single();
+
+    if (!error && data) {
+      const diffTime = Math.max(0, new Date(data.date).getTime() - new Date().getTime());
+      const newEv = {
+        id: data.id,
+        name: data.title,
+        date: new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        daysLeft: Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+        relation: data.relation || newEventRelation,
+        intent: data.intent || newEventIntent
+      };
+      setEvents(prev => [newEv, ...prev].sort((a,b) => a.daysLeft - b.daysLeft));
+    }
 
     // Reset and close
     setNewEventName("");
@@ -207,27 +250,29 @@ export default function AccountPage() {
                 <h2 className="text-2xl text-gray-900 mb-8" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Order History</h2>
                 
                 <div className="flex flex-col gap-4">
-                  {orderHistory.map((order) => (
+                  {dbOrders.length > 0 ? dbOrders.map((order) => (
                     <div key={order.id} className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-stone-50 rounded-full flex items-center justify-center border border-stone-200 shrink-0">
                           <Gift className="w-5 h-5 text-gray-400" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Order {order.id}</p>
-                          <h4 className="font-medium text-gray-900">{order.item}</h4>
-                          <p className="text-sm text-gray-500 font-light mt-0.5">Sent to {order.recipient} on {order.date}</p>
+                          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Order {order.id.split('-')[0]}</p>
+                          <h4 className="font-medium text-gray-900">Gift Order</h4>
+                          <p className="text-sm text-gray-500 font-light mt-0.5">Sent to {order.recipient_name} on {new Date(order.created_at).toLocaleDateString()}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center justify-between md:flex-col md:items-end gap-2 shrink-0">
-                        <span className="font-medium text-gray-900">₹{order.total.toLocaleString()}</span>
+                        <span className="font-medium text-gray-900">₹{order.total_amount.toLocaleString()}</span>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
                           {order.status}
                         </span>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-gray-500 font-light">No orders found.</p>
+                  )}
                 </div>
               </div>
             )}

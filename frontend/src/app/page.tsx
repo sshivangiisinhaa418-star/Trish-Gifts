@@ -1,5 +1,4 @@
 import Header from "@/components/layout/Header";
-import IntentSelector from "@/components/home/IntentSelector";
 import ExpressGiftsSlider from "@/components/home/ExpressGiftsSlider";
 import ProductCarousel from "@/components/home/ProductCarousel";
 import CollectionsGrid from "@/components/home/CollectionsGrid";
@@ -44,12 +43,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 2-5. Intent Selector */}
-        <section className="px-4 animate-fade-up delay-400 relative z-20">
-          <IntentSelector />
-        </section>
-
-        {/* 6. Trending Gifts (ProductCarousel) */}
+        {/* 2. Trending Gifts (ProductCarousel) */}
         <div className="mt-8">
           <ProductCarousel 
             title="Trending Now" 

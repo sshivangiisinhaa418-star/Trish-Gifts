@@ -73,12 +73,16 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
   const isProtectedRoute = request.nextUrl.pathname.startsWith('/account') || request.nextUrl.pathname.startsWith('/checkout')
 
+  if (request.nextUrl.pathname === '/' && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
   if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL('/account', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return supabaseResponse

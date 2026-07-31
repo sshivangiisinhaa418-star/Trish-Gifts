@@ -64,11 +64,7 @@ export default function LoginPage() {
         {/* Left Column: Form inside a beautiful floating card */}
         <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-8 py-12 lg:py-0">
           
-          {/* Back Button outside card */}
-          <Link href="/" className="absolute top-8 left-8 sm:left-12 flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors z-20">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
+
           
           {/* Premium Card Border */}
           <div className="w-full max-w-lg bg-white/95 backdrop-blur-2xl p-10 md:p-12 rounded-[2.5rem] border border-white/60 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] transition-shadow duration-500 animate-fade-up">

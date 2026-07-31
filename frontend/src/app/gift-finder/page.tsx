@@ -2,13 +2,16 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import GiftWizard from "@/components/gift-finder/GiftWizard";
 import Image from "next/image";
+import { getAllProducts } from "@/app/actions/store";
 
 export const metadata = {
   title: "AI Gift Finder | TRISH",
   description: "Find the perfect gift in seconds with our AI Gift Finder.",
 };
 
-export default function GiftFinderPage() {
+export default async function GiftFinderPage() {
+  const products = await getAllProducts();
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
@@ -55,7 +58,7 @@ export default function GiftFinderPage() {
           <div className="absolute inset-5 md:inset-10 border-[1px] border-[#500000]/5 pointer-events-none rounded-lg" />
           
           <div className="w-full max-w-3xl relative z-10 bg-white/50 backdrop-blur-sm p-8 md:p-12 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white">
-            <GiftWizard />
+            <GiftWizard products={products} />
           </div>
         </div>
       </main>

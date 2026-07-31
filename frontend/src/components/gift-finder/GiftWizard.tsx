@@ -1,352 +1,356 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Gift, Sparkles, RefreshCcw } from "lucide-react";
-import { allProducts, Product } from "@/lib/data/products";
-import ProductCard from "@/components/ui/ProductCard";
-import Link from "next/link";
+import { Sparkles, Send, Gift, RefreshCcw, CheckCircle } from "lucide-react";
+import Image from "next/image";
 
-type QuizState = {
-  recipient: string;
-  occasion: string;
-  budget: string;
+type Message = {
+  id: string;
+  sender: "ai" | "user";
+  text: string;
+  options?: string[];
+  type?: "text" | "options" | "results" | "success";
 };
 
-const RECIPIENTS = [
-  { id: "partner", label: "Partner / Spouse" },
-  { id: "parent", label: "Parent" },
-  { id: "friend", label: "Friend" },
-  { id: "colleague", label: "Colleague" },
-  { id: "sibling", label: "Sibling" },
-  { id: "self", label: "Myself" },
-];
-
-const OCCASIONS = [
-  { id: "birthday", label: "Birthday" },
-  { id: "anniversary", label: "Anniversary" },
-  { id: "wedding", label: "Wedding" },
-  { id: "housewarming", label: "Housewarming" },
-  { id: "thank you", label: "Thank You" },
-  { id: "just because", label: "Just Because" },
-];
-
-const BUDGETS = [
-  { id: "under_1000", label: "Under ₹1000" },
-  { id: "1000_2500", label: "₹1000 - ₹2500" },
-  { id: "2500_5000", label: "₹2500 - ₹5000" },
-  { id: "over_5000", label: "Over ₹5000" },
+// Mock curated results
+const MOCK_RESULTS = [
+  {
+    id: "opt_1",
+    title: "The Signature Collection",
+    description: "Elegant and timeless arrangement.",
+    price: 3500,
+    image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=500&q=80",
+  },
+  {
+    id: "opt_2",
+    title: "The Luxe Edit",
+    description: "Premium selection with premium accents.",
+    price: 4800,
+    image: "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=500&q=80",
+  },
+  {
+    id: "opt_3",
+    title: "The Minimalist Touch",
+    description: "Clean, modern, and beautifully presented.",
+    price: 2800,
+    image: "https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=500&q=80",
+  }
 ];
 
 export default function GiftWizard() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<QuizState>({
-    recipient: "",
-    occasion: "",
-    budget: "",
-  });
-  const [isCurating, setIsCurating] = useState(false);
-  const [results, setResults] = useState<Product[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSelect = (key: keyof QuizState, value: string) => {
-    setAnswers((prev) => ({ ...prev, [key]: value }));
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const nextStep = () => {
-    if (step < 2) {
-      setStep((prev) => prev + 1);
-    } else {
-      curateGifts();
-    }
-  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
-  const prevStep = () => {
-    if (step > 0) setStep((prev) => prev - 1);
-  };
-
-  const resetQuiz = () => {
-    setAnswers({ recipient: "", occasion: "", budget: "" });
-    setStep(0);
-    setResults([]);
-  };
-
-  const curateGifts = () => {
-    setStep(3); // Move to results step
-    setIsCurating(true);
-
-    // Simulate AI loading time
+  useEffect(() => {
+    // Initial greeting
     setTimeout(() => {
-      let matched = [...allProducts];
+      setMessages([
+        {
+          id: "msg_1",
+          sender: "ai",
+          text: "Hello! I'm your TRISH Concierge. Let's customize the perfect gift. To begin, what is the occasion?",
+          type: "options",
+          options: ["Birthday", "Anniversary", "Wedding", "Thank You", "Just Because"]
+        }
+      ]);
+    }, 500);
+  }, []);
 
-      // Filter by Budget
-      if (answers.budget) {
-        matched = matched.filter((p) => {
-          if (answers.budget === "under_1000") return p.price < 1000;
-          if (answers.budget === "1000_2500") return p.price >= 1000 && p.price <= 2500;
-          if (answers.budget === "2500_5000") return p.price > 2500 && p.price <= 5000;
-          if (answers.budget === "over_5000") return p.price > 5000;
-          return true;
-        });
+  const handleOptionSelect = (option: string) => {
+    // Add user message
+    const userMsg: Message = {
+      id: `msg_user_${Date.now()}`,
+      sender: "user",
+      text: option,
+      type: "text"
+    };
+    
+    // Remove options from previous AI message to prevent re-clicking
+    setMessages(prev => {
+      const newMsgs = [...prev];
+      const lastMsg = newMsgs[newMsgs.length - 1];
+      if (lastMsg && lastMsg.type === "options") {
+        lastMsg.type = "text";
       }
+      return [...newMsgs, userMsg];
+    });
 
-      // Filter by Tags (Recipient/Occasion)
-      const scoredProducts = matched.map((p) => {
-        let score = 0;
-        const tags = p.tags.map((t) => t.toLowerCase());
-        
-        if (answers.occasion && tags.includes(answers.occasion.toLowerCase())) score += 2;
-        
-        // Map recipient to common tags
-        let recipientTag = answers.recipient;
-        if (recipientTag === "partner") recipientTag = "wife"; // simple mapping for mock data
-        if (recipientTag === "parent") recipientTag = "mother";
-        
-        if (recipientTag && tags.includes(recipientTag.toLowerCase())) score += 2;
+    setIsTyping(true);
 
-        return { product: p, score };
-      });
+    // AI Response logic based on step
+    setTimeout(() => {
+      setIsTyping(false);
+      let nextAiMsg: Message;
 
-      // Sort by score
-      scoredProducts.sort((a, b) => b.score - a.score);
+      if (step === 0) {
+        nextAiMsg = {
+          id: `msg_ai_${Date.now()}`,
+          sender: "ai",
+          text: `Wonderful. For a ${option}, which color themes would you prefer for the packaging?`,
+          type: "options",
+          options: ["Gold & Crimson", "Pastel Pink & White", "Monochrome Black", "Emerald & Silver", "Earthy Tones"]
+        };
+        setStep(1);
+      } else if (step === 1) {
+        nextAiMsg = {
+          id: `msg_ai_${Date.now()}`,
+          sender: "ai",
+          text: "A beautiful choice. What kind of basket or container would you like to use for presenting the products?",
+          type: "options",
+          options: ["Wicker Basket", "Velvet Box", "Wooden Crate", "Leather Trunk", "Minimalist Tray"]
+        };
+        setStep(2);
+      } else if (step === 2) {
+        // Generating results step
+        setMessages(prev => [...prev, {
+          id: `msg_ai_${Date.now()}_curating`,
+          sender: "ai",
+          text: "Curating your custom gift based on these preferences... Please wait a moment.",
+          type: "text"
+        }]);
+        
+        setIsTyping(true);
+        
+        setTimeout(() => {
+          setIsTyping(false);
+          setMessages(prev => [...prev, {
+            id: `msg_ai_${Date.now()}`,
+            sender: "ai",
+            text: "Here are 3 exquisite options we've designed for you. Which arrangement do you prefer?",
+            type: "results"
+          }]);
+          setStep(3);
+        }, 2500);
+        return;
+      }
       
-      let finalResults = scoredProducts.filter(p => p.score > 0).map(p => p.product);
-      if (finalResults.length === 0) {
-          finalResults = matched.slice(0, 4);
+      setMessages(prev => [...prev, nextAiMsg]);
+    }, 1200);
+  };
+
+  const handleResultSelect = (resultId: string) => {
+    const selected = MOCK_RESULTS.find(r => r.id === resultId);
+    if (!selected) return;
+
+    setMessages(prev => {
+      const newMsgs = [...prev];
+      const lastMsg = newMsgs[newMsgs.length - 1];
+      if (lastMsg && lastMsg.type === "results") {
+        lastMsg.type = "text"; // Hide results to prevent re-selection
       }
+      return [...newMsgs, {
+        id: `msg_user_${Date.now()}`,
+        sender: "user",
+        text: `I choose "${selected.title}"`,
+        type: "text"
+      }];
+    });
 
-      setResults(finalResults.slice(0, 4)); // Top 4 results for elegant display
-      setIsCurating(false);
-    }, 2000);
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => [...prev, {
+        id: `msg_ai_${Date.now()}`,
+        sender: "ai",
+        text: `Excellent choice! "${selected.title}" is a stunning arrangement. We will prepare this beautiful gift for you. You can now proceed to checkout.`,
+        type: "success"
+      }]);
+    }, 1000);
   };
 
-  const renderStepContent = () => {
-    switch (step) {
-      case 0:
-        return (
-          <motion.div
-            key="step0"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full"
-          >
-            <h2 className="text-3xl md:text-5xl text-gray-900 mb-12 font-light" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-              Who is the recipient?
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              {RECIPIENTS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelect("recipient", item.id)}
-                  className={`text-left pb-4 border-b transition-all duration-300 group ${
-                    answers.recipient === item.id
-                      ? "border-[#500000] text-[#500000]"
-                      : "border-gray-200 hover:border-gray-400 text-gray-400 hover:text-gray-900"
-                  }`}
-                >
-                  <span className={`text-2xl font-light tracking-wide transition-all duration-500 inline-block ${answers.recipient === item.id ? 'translate-x-2' : 'group-hover:translate-x-2'}`} style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-                    {item.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        );
-      case 1:
-        return (
-          <motion.div
-            key="step1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full"
-          >
-            <h2 className="text-3xl md:text-5xl text-gray-900 mb-12 font-light" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-              What is the occasion?
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              {OCCASIONS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelect("occasion", item.id)}
-                  className={`text-left pb-4 border-b transition-all duration-300 group ${
-                    answers.occasion === item.id
-                      ? "border-[#500000] text-[#500000]"
-                      : "border-gray-200 hover:border-gray-400 text-gray-400 hover:text-gray-900"
-                  }`}
-                >
-                  <span className={`text-2xl font-light tracking-wide transition-all duration-500 inline-block ${answers.occasion === item.id ? 'translate-x-2' : 'group-hover:translate-x-2'}`} style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-                    {item.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        );
-      case 2:
-        return (
-          <motion.div
-            key="step2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full"
-          >
-            <h2 className="text-3xl md:text-5xl text-gray-900 mb-12 font-light" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-              What is your budget?
-            </h2>
-            <div className="flex flex-col gap-6 max-w-md">
-              {BUDGETS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelect("budget", item.id)}
-                  className={`text-left pb-4 border-b transition-all duration-300 group ${
-                    answers.budget === item.id
-                      ? "border-[#500000] text-[#500000]"
-                      : "border-gray-200 hover:border-gray-400 text-gray-400 hover:text-gray-900"
-                  }`}
-                >
-                  <span className={`text-2xl font-light tracking-wide transition-all duration-500 inline-block ${answers.budget === item.id ? 'translate-x-2' : 'group-hover:translate-x-2'}`} style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-                    {item.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        );
-      case 3:
-        return (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full"
-          >
-            {isCurating ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="relative w-24 h-24 mb-10">
-                  <div className="absolute inset-0 border-[1px] border-gray-200 rounded-full"></div>
-                  <div className="absolute inset-0 border-[1px] border-[#500000] rounded-full border-t-transparent animate-spin" style={{ animationDuration: '2s' }}></div>
-                  <Gift className="absolute inset-0 m-auto text-[#500000] w-6 h-6 animate-pulse" strokeWidth={1} />
-                </div>
-                <h3 className="text-3xl font-light text-gray-900 mb-4" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Curating the perfect gifts...</h3>
-                <p className="text-gray-400 font-light tracking-wide">Analyzing our premium collection for a flawless match.</p>
-              </div>
-            ) : (
-              <div className="w-full">
-                <div className="mb-12">
-                  <span className="uppercase tracking-[0.2em] text-[10px] font-bold mb-4 block text-[#500000]">TRISH Selections</span>
-                  <h2 className="text-4xl text-gray-900 mb-4 font-light" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-                    Your Curated Results
-                  </h2>
-                  <p className="text-gray-500 font-light">
-                    Based on your preferences, we've hand-picked these extraordinary gifts.
-                  </p>
-                </div>
-
-                {results.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-16">
-                    {results.map((product) => (
-                      <ProductCard key={product.id} {...product} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-left py-12 border-t border-gray-100 mb-12">
-                    <p className="text-gray-400 font-light mb-8">We couldn't find an exact match, but we have many other wonderful options in our catalog.</p>
-                    <Link href="/discover" className="inline-block px-8 py-4 border border-gray-200 text-gray-900 uppercase tracking-widest text-xs font-bold hover:bg-gray-900 hover:text-white transition-colors duration-300">
-                      Explore Full Collection
-                    </Link>
-                  </div>
-                )}
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={resetQuiz}
-                    className="inline-flex items-center gap-2 px-6 py-3 text-sm tracking-widest uppercase font-bold text-gray-500 hover:text-gray-900 transition-colors"
-                  >
-                    <RefreshCcw className="w-3.5 h-3.5" /> Start Over
-                  </button>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const isCurrentStepValid = () => {
-    if (step === 0) return !!answers.recipient;
-    if (step === 1) return !!answers.occasion;
-    if (step === 2) return !!answers.budget;
-    return true;
+  const resetChat = () => {
+    setStep(0);
+    setMessages([]);
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages([
+        {
+          id: "msg_1",
+          sender: "ai",
+          text: "Hello again! Let's start over. What is the occasion for the gift?",
+          type: "options",
+          options: ["Birthday", "Anniversary", "Wedding", "Thank You", "Just Because"]
+        }
+      ]);
+    }, 800);
   };
 
   return (
-    <div className="w-full">
-      {/* Progress Bar & Header */}
-      {step < 3 && (
-        <div className="mb-16">
-          <div className="flex items-center gap-4 mb-4">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex-1 h-[2px] bg-gray-200 overflow-hidden">
-                <motion.div
-                  className="h-full bg-[#500000]"
-                  initial={{ width: step > i ? '100%' : '0%' }}
-                  animate={{ width: step > i ? '100%' : step === i ? '100%' : '0%' }}
-                  transition={{ duration: 0.8, ease: "circOut" }}
-                />
-              </div>
-            ))}
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-3xl border border-gray-100 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-[700px]">
+      
+      {/* Chat Header */}
+      <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[#500000] flex items-center justify-center shadow-md">
+            <Sparkles className="w-6 h-6 text-amber-200" />
           </div>
-          <div className="flex justify-between items-center text-xs tracking-widest uppercase font-bold text-gray-400">
-            <span>Step 0{step + 1}</span>
-            <span className="text-[#500000]">
-              {step === 0 && "The Recipient"}
-              {step === 1 && "The Occasion"}
-              {step === 2 && "The Budget"}
-            </span>
+          <div>
+            <h3 className="font-bold text-gray-900 tracking-wide">TRISH Custom Studio</h3>
+            <p className="text-xs text-gray-500 font-light flex items-center gap-1.5 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              AI Concierge Online
+            </p>
           </div>
         </div>
-      )}
-
-      {/* Quiz Content */}
-      <div className="min-h-[350px]">
-        <AnimatePresence mode="wait">
-          {renderStepContent()}
-        </AnimatePresence>
+        <button 
+          onClick={resetChat}
+          className="p-2.5 text-gray-400 hover:text-gray-900 transition-colors rounded-full hover:bg-white border border-transparent hover:border-gray-200"
+          title="Restart Conversation"
+        >
+          <RefreshCcw className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Navigation Buttons */}
-      {step < 3 && (
-        <div className="mt-16 pt-8 border-t border-gray-100 flex items-center justify-between">
-          <button
-            onClick={prevStep}
-            disabled={step === 0}
-            className={`flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-all ${
-              step === 0
-                ? "text-gray-300 cursor-not-allowed opacity-0 pointer-events-none"
-                : "text-gray-400 hover:text-gray-900"
-            }`}
-          >
-            <ArrowLeft className="w-3 h-3" /> Back
-          </button>
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-gradient-to-b from-transparent to-gray-50/30">
+        <AnimatePresence initial={false}>
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 15, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
+            >
+              {/* Message Bubble */}
+              <div 
+                className={`max-w-[85%] md:max-w-[75%] p-5 rounded-2xl ${
+                  msg.sender === "user" 
+                    ? "bg-[#500000] text-white rounded-br-sm shadow-md" 
+                    : "bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm"
+                }`}
+              >
+                <p className={`text-[15px] leading-relaxed ${msg.sender === "user" ? "font-light" : "font-light"}`}>
+                  {msg.text}
+                </p>
+              </div>
+
+              {/* Options */}
+              {msg.type === "options" && msg.options && (
+                <motion.div 
+                  initial={{ opacity: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, marginTop: 16 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex flex-wrap gap-2 mt-4 ml-2 max-w-2xl"
+                >
+                  {msg.options.map((opt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleOptionSelect(opt)}
+                      className="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-full text-sm font-medium hover:border-[#500000] hover:text-[#500000] transition-all hover:shadow-sm"
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+
+              {/* Results Gallery */}
+              {msg.type === "results" && (
+                <motion.div 
+                  initial={{ opacity: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, marginTop: 24 }}
+                  transition={{ delay: 0.3 }}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 w-full max-w-3xl"
+                >
+                  {MOCK_RESULTS.map((result, i) => (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + (i * 0.1) }}
+                      key={result.id} 
+                      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
+                    >
+                      <div className="relative h-48 w-full overflow-hidden bg-gray-50">
+                        <Image src={result.image} alt={result.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </div>
+                      <div className="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                          <h4 className="font-bold text-gray-900 mb-1" style={{ fontFamily: 'var(--font-cormorant), serif', fontSize: '1.2rem' }}>
+                            {result.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 font-light mb-4 line-clamp-2">{result.description}</p>
+                        </div>
+                        <div className="flex items-center justify-between mt-auto">
+                          <span className="text-sm font-bold text-gray-900">₹{result.price}</span>
+                          <button 
+                            onClick={() => handleResultSelect(result.id)}
+                            className="px-4 py-2 bg-gray-900 text-white text-[11px] font-bold tracking-widest uppercase rounded-full hover:bg-[#500000] transition-colors"
+                          >
+                            Select
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+
+              {/* Success State */}
+              {msg.type === "success" && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5, type: "spring" }}
+                  className="mt-6 flex flex-col items-start gap-4"
+                >
+                  <button className="flex items-center gap-3 px-8 py-4 bg-[#500000] text-white rounded-full font-bold uppercase tracking-widest text-xs hover:bg-gray-900 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">
+                    <Gift className="w-4 h-4" />
+                    Proceed to Checkout
+                  </button>
+                </motion.div>
+              )}
+
+            </motion.div>
+          ))}
           
-          <button
-            onClick={nextStep}
-            disabled={!isCurrentStepValid()}
-            className={`flex items-center gap-3 px-8 py-4 text-xs font-bold tracking-widest uppercase transition-all duration-500 ${
-              isCurrentStepValid()
-                ? "bg-[#500000] text-white hover:bg-gray-900"
-                : "bg-gray-100 text-gray-300 cursor-not-allowed"
-            }`}
-          >
-            {step === 2 ? "Discover Gifts" : "Next Step"} 
-            {isCurrentStepValid() && <ArrowRight className="w-3 h-3" />}
-          </button>
+          {/* Typing Indicator */}
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="flex items-start"
+            >
+              <div className="bg-white border border-gray-100 p-4 rounded-2xl rounded-bl-sm shadow-sm flex gap-1.5 items-center h-12">
+                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area (Disabled since it's button-driven for now) */}
+      <div className="px-6 py-4 bg-white border-t border-gray-100">
+        <div className="relative flex items-center">
+          <input 
+            type="text" 
+            placeholder="Select an option above..." 
+            disabled 
+            className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-full text-sm focus:outline-none cursor-not-allowed opacity-60"
+          />
+          <div className="absolute right-2 p-2 text-gray-300">
+            <Send className="w-5 h-5" />
+          </div>
         </div>
-      )}
+      </div>
+
     </div>
   );
 }

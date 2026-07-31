@@ -11,7 +11,6 @@ export default function Footer() {
             <h3 className="font-bold text-gray-900 mb-4">Our Company</h3>
             <ul className="space-y-3 text-sm text-gray-600 font-light">
               <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link href="/journal" className="hover:text-primary transition-colors">Blog</Link></li>
               <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Use</Link></li>
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link href="/supply-chain" className="hover:text-primary transition-colors">California Supply Chain Act</Link></li>

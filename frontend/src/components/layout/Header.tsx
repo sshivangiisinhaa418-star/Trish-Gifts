@@ -35,7 +35,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center group">
             <span 
-              className="text-6xl text-[#500000] tracking-[0.05em] inline-block transform scale-x-[1.15] scale-y-[1.1] group-hover:opacity-80 transition-opacity origin-left font-light pl-2"
+              className="text-3xl text-[#500000] tracking-[0.05em] inline-block hover:opacity-80 transition-opacity origin-left font-light pl-2"
               style={{ fontFamily: 'var(--font-cormorant), serif' }}
             >
               TRISH
@@ -45,14 +45,17 @@ export default function Header() {
           {/* Main Links */}
           <div className="hidden lg:flex items-center gap-8 pt-2">
             <Link href="/about" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Our Story</Link>
-            <Link href="/journal" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Journal</Link>
-            <Link href="/concierge" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Concierge</Link>
+            <Link href="/concierge" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Services</Link>
           </div>
         </div>
 
         {/* Center Section: Search Bar */}
-        <div className="flex-1 max-w-xl hidden md:block">
-          <div className="relative group">
+        <div className="flex-1 max-w-xl hidden md:flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 cursor-pointer whitespace-nowrap bg-gray-50 px-3 py-2 rounded-full transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            Deliver to: <span className="font-bold">Select Location</span>
+          </div>
+          <div className="relative group flex-1">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-gray-400 group-focus-within:text-gray-900 transition-colors" />
             </div>
@@ -72,7 +75,7 @@ export default function Header() {
             className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-[#500000] text-white rounded-full hover:bg-[#600000] transition-colors text-sm font-medium mr-2 shadow-sm"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
-            Gift Finder
+            Customize
           </Link>
           <Link 
             href="/gift-finder"
@@ -94,7 +97,15 @@ export default function Header() {
           </Link>
           
           <Link href={user ? "/account" : "/login"} className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
-            <User className={`w-5 h-5 group-hover:scale-110 transition-transform ${user ? 'text-[#500000] fill-[#500000]/10' : ''}`} />
+            {user?.user_metadata?.avatar_url ? (
+              <img 
+                src={user.user_metadata.avatar_url} 
+                alt="Profile" 
+                className="w-6 h-6 rounded-full object-cover group-hover:scale-110 transition-transform shadow-sm"
+              />
+            ) : (
+              <User className={`w-5 h-5 group-hover:scale-110 transition-transform ${user ? 'text-[#500000] fill-[#500000]/10' : ''}`} />
+            )}
           </Link>
 
           {user?.email?.toLowerCase() === 'mayankrajdto@gmail.com' && (
