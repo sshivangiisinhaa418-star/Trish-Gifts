@@ -5,33 +5,19 @@ import { Search, Heart, ShoppingBag, User, Sparkles, Settings } from "lucide-rea
 import GlobalNav from "./GlobalNav";
 import { useCart } from "@/lib/context/CartContext";
 import { useWishlist } from "@/lib/context/WishlistContext";
-import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function Header() {
   const { cartItems, openCart } = useCart();
   const { wishlistItems } = useWishlist();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then((res: any) => {
-      setUser(res?.data?.user || null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-gray-100 animate-fade-up">
-      <div className="w-full px-4 md:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
+      <div className="w-full px-4 md:px-6 lg:px-8 h-20 flex items-center justify-between gap-4 md:gap-6">
         
         {/* Left Section: Logo & Main Links */}
-        <div className="flex items-center gap-8 lg:gap-12">
+        <div className="flex items-center gap-6 lg:gap-12">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
             <span 
@@ -44,7 +30,7 @@ export default function Header() {
 
           {/* Main Links */}
           <div className="hidden lg:flex items-center gap-8 pt-2">
-            <Link href="/about" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Our Story</Link>
+            <Link href="/heritage" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Our Heritage</Link>
             <Link href="/concierge" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Services</Link>
           </div>
         </div>
@@ -61,75 +47,109 @@ export default function Header() {
             </div>
             <input
               type="text"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = e.currentTarget.value.trim();
+                  const dest = val ? `/discover?q=${encodeURIComponent(val)}` : '/discover';
+                  window.location.href = user ? dest : `/login?redirectTo=${encodeURIComponent(dest)}`;
+                }
+              }}
               className="block w-full pl-11 pr-4 py-3 border-0 bg-gray-100/80 rounded-full text-sm font-medium text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-900 focus:bg-white transition-all outline-none"
               placeholder="Search for gifts, occasions, sentiments..."
             />
           </div>
         </div>
 
-        {/* Right Section: Icons */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        {/* Right Section: Icons & Professional Auth Buttons */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {/* AI Gift Finder Button */}
           <Link 
-            href="/gift-finder"
-            className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-[#500000] text-white rounded-full hover:bg-[#600000] transition-colors text-sm font-medium mr-2 shadow-sm"
+            href={user ? "/gift-finder" : "/login?redirectTo=%2Fgift-finder"}
+            className="hidden md:flex items-center gap-1.5 px-4 py-2 bg-[#500000] text-white rounded-full hover:bg-[#600000] transition-colors text-xs font-medium mr-1 shadow-sm whitespace-nowrap"
           >
-            <Sparkles className="w-4 h-4 text-amber-300" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             Customize
           </Link>
           <Link 
-            href="/gift-finder"
-            className="md:hidden p-2.5 text-[#500000] hover:bg-red-50 transition-colors rounded-full relative group"
+            href={user ? "/gift-finder" : "/login?redirectTo=%2Fgift-finder"}
+            className="md:hidden p-2 text-[#500000] hover:bg-red-50 transition-colors rounded-full relative group"
           >
             <Sparkles className="w-5 h-5" />
           </Link>
           
           {/* Mobile Search Icon */}
-          <button className="p-2.5 md:hidden text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100">
+          <Link href={user ? "/discover" : "/login?redirectTo=%2Fdiscover"} className="p-2 md:hidden text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100">
             <Search className="w-5 h-5" />
-          </button>
+          </Link>
           
-          <Link href="/wishlist" className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group">
+          <Link href={user ? "/wishlist" : "/login?redirectTo=%2Fwishlist"} className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group">
             <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
             {wishlistItems.length > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
             )}
           </Link>
-          
-          <Link href={user ? "/account" : "/login"} className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
-            {user?.user_metadata?.avatar_url ? (
-              <img 
-                src={user.user_metadata.avatar_url} 
-                alt="Profile" 
-                className="w-6 h-6 rounded-full object-cover group-hover:scale-110 transition-transform shadow-sm"
-              />
-            ) : (
-              <User className={`w-5 h-5 group-hover:scale-110 transition-transform ${user ? 'text-[#500000] fill-[#500000]/10' : ''}`} />
-            )}
-          </Link>
-
-          {user?.email?.toLowerCase() === 'mayankrajdto@gmail.com' && (
-            <Link href="/admin" className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
-              <Settings className="w-5 h-5 group-hover:scale-110 transition-transform text-[#500000]" />
-            </Link>
-          )}
           
           <button 
-            onClick={openCart}
-            className="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 flex items-center gap-1 group"
+            onClick={() => {
+              if (!user) {
+                window.location.href = "/login?redirectTo=%2Fcheckout";
+              } else {
+                openCart();
+              }
+            }}
+            className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 flex items-center gap-1 group"
           >
             <div className="relative">
               <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
               {cartItems.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
+                <span className="absolute -top-1 -right-2 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
                   {cartItems.length}
                 </span>
               )}
             </div>
           </button>
+
+          {user?.email?.toLowerCase() === 'mayankrajdto@gmail.com' && (
+            <Link href="/admin" className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
+              <Settings className="w-5 h-5 group-hover:scale-110 transition-transform text-[#500000]" />
+            </Link>
+          )}
+
+          {/* Professional Sign Up & Log In Buttons for Unauthenticated Visitors */}
+          {user ? (
+            <Link href="/account" title="My Account & Orders" className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group flex items-center ml-1">
+              {user?.user_metadata?.avatar_url ? (
+                <img 
+                  src={user.user_metadata.avatar_url} 
+                  alt="Profile" 
+                  className="w-7 h-7 rounded-full object-cover group-hover:scale-105 transition-transform shadow-sm ring-2 ring-[#500000]/20"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#500000]/10 flex items-center justify-center text-[#500000] group-hover:bg-[#500000]/20 transition-colors">
+                  <User className="w-4 h-4 text-[#500000]" />
+                </div>
+              )}
+            </Link>
+          ) : (
+            <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-gray-200 ml-1">
+              <Link 
+                href="/login" 
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs md:text-sm font-semibold text-gray-700 hover:text-[#500000] transition-colors rounded-full hover:bg-gray-100 whitespace-nowrap"
+              >
+                Log In
+              </Link>
+              <Link 
+                href="/signup" 
+                className="px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-[#500000] to-[#700000] text-white hover:opacity-95 transition-all duration-300 text-xs md:text-sm font-semibold rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       </div>
       <GlobalNav />
     </header>
   );
 }
+

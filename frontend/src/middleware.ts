@@ -71,18 +71,30 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes logic
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/account') || request.nextUrl.pathname.startsWith('/checkout')
+  
+  // All gift browsing, searching, product details, customizing, and account actions require authentication
+  const isGiftOrProtectedRoute = 
+    request.nextUrl.pathname.startsWith('/discover') ||
+    request.nextUrl.pathname.startsWith('/product') ||
+    request.nextUrl.pathname.startsWith('/gift-finder') ||
+    request.nextUrl.pathname.startsWith('/wishlist') ||
+    request.nextUrl.pathname.startsWith('/checkout') ||
+    request.nextUrl.pathname.startsWith('/account') ||
+    request.nextUrl.pathname.startsWith('/concierge') ||
+    request.nextUrl.pathname.startsWith('/reveal');
 
-  if (request.nextUrl.pathname === '/' && !user) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  if (isGiftOrProtectedRoute && !user) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirectTo', request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.redirect(loginUrl);
   }
 
   if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL('/', request.url))
+    const redirectTo = request.nextUrl.searchParams.get('redirectTo');
+    if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
+      return NextResponse.redirect(new URL(redirectTo, request.url));
+    }
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return supabaseResponse

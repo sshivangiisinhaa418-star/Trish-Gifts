@@ -2,14 +2,21 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
-import { useTransition, useState } from "react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useTransition, useState, useEffect } from "react";
 import { signup } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [redirectTo, setRedirectTo] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRedirectTo(params.get("redirectTo") || "");
+  }, []);
 
   const handleSubmit = (formData: FormData) => {
     setError(null);
@@ -27,7 +34,7 @@ export default function SignupPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
         },
       });
       if (error) {
@@ -79,6 +86,7 @@ export default function SignupPage() {
             <p className="text-gray-500 font-light mb-10">Join TRISH to manage your bespoke gifting calendar and enjoy exclusive concierge privileges.</p>
             
             <form action={handleSubmit} className="space-y-6">
+              {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
               {error && (
                 <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-light">
                   {error}
@@ -88,22 +96,38 @@ export default function SignupPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-bold text-gray-900 uppercase tracking-[0.2em] block mb-2 ml-1">First Name</label>
-                  <input type="text" name="first_name" required placeholder="Jane" className="w-full px-6 py-4 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" />
+                  <input type="text" name="first_name" required placeholder="Jane" className="w-full px-6 py-4 bg-stone-50 text-gray-900 font-medium placeholder:text-gray-400 caret-[#500000] border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" />
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-gray-900 uppercase tracking-[0.2em] block mb-2 ml-1">Last Name</label>
-                  <input type="text" name="last_name" required placeholder="Doe" className="w-full px-6 py-4 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" />
+                  <input type="text" name="last_name" required placeholder="Doe" className="w-full px-6 py-4 bg-stone-50 text-gray-900 font-medium placeholder:text-gray-400 caret-[#500000] border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" />
                 </div>
               </div>
 
               <div>
                 <label className="text-[10px] font-bold text-gray-900 uppercase tracking-[0.2em] block mb-2 ml-1">Email Address</label>
-                <input type="email" name="email" required placeholder="name@example.com" className="w-full px-6 py-4 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" />
+                <input type="email" name="email" required placeholder="name@example.com" className="w-full px-6 py-4 bg-stone-50 text-gray-900 font-medium placeholder:text-gray-400 caret-[#500000] border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" />
               </div>
               
               <div>
                 <label className="text-[10px] font-bold text-gray-900 uppercase tracking-[0.2em] block mb-2 ml-1">Password</label>
-                <input type="password" name="password" required placeholder="••••••••" className="w-full px-6 py-4 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" />
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    name="password" 
+                    required 
+                    placeholder="••••••••" 
+                    className="w-full pl-6 pr-14 py-4 bg-stone-50 text-gray-900 font-medium placeholder:text-gray-400 caret-[#500000] border border-stone-200 rounded-2xl text-sm focus:outline-none focus:border-[#500000] focus:bg-white focus:ring-1 focus:ring-[#500000] transition-all" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none p-1 transition-colors"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
                 <p className="text-[10px] text-gray-400 mt-2 font-light ml-1">Must be at least 8 characters long.</p>
               </div>
 
@@ -144,7 +168,7 @@ export default function SignupPage() {
             </div>
             
             <p className="mt-8 text-center text-sm text-gray-500 font-light">
-              Already have an account? <Link href="/login" className="font-bold text-gray-900 hover:text-[#500000] hover:underline transition-colors">Sign in here</Link>
+              Already have an account? <Link href={`/login${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`} className="font-bold text-gray-900 hover:text-[#500000] hover:underline transition-colors">Sign in here</Link>
             </p>
           </div>
         </div>

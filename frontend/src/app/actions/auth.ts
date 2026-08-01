@@ -18,8 +18,10 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/')
+  const rawRedirectTo = formData.get('redirectTo') as string | null;
+  const redirectTo = (rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')) ? rawRedirectTo : '/';
+  revalidatePath('/', 'layout');
+  redirect(redirectTo);
 }
 
 export async function signup(formData: FormData) {
@@ -43,8 +45,10 @@ export async function signup(formData: FormData) {
     return { error: error.message }
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/')
+  const rawRedirectTo = formData.get('redirectTo') as string | null;
+  const redirectTo = (rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')) ? rawRedirectTo : '/';
+  revalidatePath('/', 'layout');
+  redirect(redirectTo);
 }
 
 export async function logout() {

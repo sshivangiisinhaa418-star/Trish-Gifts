@@ -3,6 +3,7 @@ import { Inter, Outfit, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/context/CartContext";
 import { WishlistProvider } from "@/lib/context/WishlistContext";
+import { AuthProvider } from "@/lib/context/AuthContext";
 import CartDrawer from "@/components/layout/CartDrawer";
 
 const inter = Inter({
@@ -37,12 +38,14 @@ export default function RootLayout({
       className={`${inter.variable} ${outfit.variable} ${cormorant.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <WishlistProvider>
-          <CartProvider>
-            {children}
-            <CartDrawer />
-          </CartProvider>
-        </WishlistProvider>
+        <AuthProvider>
+          <WishlistProvider>
+            <CartProvider>
+              {children}
+              <CartDrawer />
+            </CartProvider>
+          </WishlistProvider>
+        </AuthProvider>
       </body>
     </html>
   );

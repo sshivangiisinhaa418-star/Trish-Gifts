@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, Star, ShoppingBag } from "lucide-react";
 import { useWishlist } from "@/lib/context/WishlistContext";
 import { useCart } from "@/lib/context/CartContext";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export interface ProductCardProps {
   id?: string | number;
@@ -25,6 +26,7 @@ export interface ProductCardProps {
 export default function ProductCard(props: ProductCardProps) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   
   // Normalize old dummy props vs new DB props
   const id = props.id || "1";
@@ -47,6 +49,10 @@ export default function ProductCard(props: ProductCardProps) {
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!user) {
+      window.location.href = `/login?redirectTo=${encodeURIComponent(`/product/${id}`)}`;
+      return;
+    }
     toggleWishlist({
       id: Number(id) || 1,
       title,
@@ -63,6 +69,10 @@ export default function ProductCard(props: ProductCardProps) {
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!user) {
+      window.location.href = `/login?redirectTo=${encodeURIComponent(`/product/${id}`)}`;
+      return;
+    }
     addToCart({
       title,
       price,

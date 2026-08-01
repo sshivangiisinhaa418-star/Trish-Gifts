@@ -4,7 +4,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  const rawNext = searchParams.get('next') || searchParams.get('redirectTo') || '/'
+  const next = (rawNext.startsWith('/') && !rawNext.startsWith('//')) ? rawNext : '/';
 
   if (code) {
     const response = NextResponse.redirect(`${origin}${next}`)
