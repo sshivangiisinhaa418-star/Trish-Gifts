@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
 export async function login(formData: FormData) {
@@ -26,27 +27,48 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient()
+  const headersList = await headers()
+  const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+  const email = formData.get('email') as string
+  const firstName = formData.get('first_name') as string
+  const lastName = formData.get('last_name') as string
 
   const data = {
-    email: formData.get('email') as string,
+    email,
     password: formData.get('password') as string,
     options: {
       data: {
-        first_name: formData.get('first_name') as string,
-        last_name: formData.get('last_name') as string,
+        first_name: firstName,
+        last_name: lastName,
+        full_name: `${firstName} ${lastName}`.trim(),
         newsletter: formData.get('newsletter') === 'on',
-      }
+      },
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/account?tab=profile')}`,
     }
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  const { data: authData, error } = await supabase.auth.signUp(data)
 
   if (error) {
+    if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('user already exists')) {
+      return { error: 'An account with this email already exists. Please sign in instead.' }
+    }
     return { error: error.message }
   }
 
+  // Supabase returns an empty identities array when a pre-existing user attempts to register again
+  if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
+    return { error: 'An account with this email already exists. Please sign in instead.' }
+  }
+
+  // If no immediate session was returned, Supabase dispatched an email verification link
+  if (!authData?.session) {
+    return { success: true, email }
+  }
+
   const rawRedirectTo = formData.get('redirectTo') as string | null;
-  const redirectTo = (rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')) ? rawRedirectTo : '/';
+  const redirectTo = (rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')) ? rawRedirectTo : '/account?tab=profile';
   revalidatePath('/', 'layout');
   redirect(redirectTo);
 }
@@ -55,5 +77,5 @@ export async function logout() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
-  redirect('/login')
+  redirect('/')
 }

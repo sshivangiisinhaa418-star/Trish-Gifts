@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar as CalendarIcon, Package, User, Heart, Plus, Bell, ChevronRight, Gift, LogOut } from "lucide-react";
+import { Calendar as CalendarIcon, Package, User, Heart, Plus, Bell, ChevronRight, Gift, LogOut, CheckCircle2, Sparkles, ShieldCheck, Award } from "lucide-react";
 import GlobalNav from "@/components/layout/GlobalNav";
 import { logout } from "@/app/actions/auth";
 import { createBrowserClient } from "@supabase/ssr";
@@ -27,6 +27,12 @@ export default function AccountPage() {
   const [supabase, setSupabase] = useState<any>(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'profile' || tabParam === 'orders' || tabParam === 'calendar') {
+      setActiveTab(tabParam as any);
+    }
+
     const init = async () => {
       const supabaseClient = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -279,26 +285,83 @@ export default function AccountPage() {
 
             {/* Profile Tab */}
             {activeTab === "profile" && (
-              <div className="animate-fade-up">
-                <h2 className="text-2xl text-gray-900 mb-8" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Profile Settings</h2>
-                <div className="bg-white border border-stone-200 rounded-2xl p-8 shadow-sm">
+              <div className="animate-fade-up space-y-8">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-[#500000] border border-amber-200 rounded-full text-[10px] font-bold uppercase tracking-widest mb-3 shadow-sm">
+                    <Sparkles className="w-3 h-3" /> Verified Member Dossier
+                  </div>
+                  <h2 className="text-3xl text-gray-900 font-light" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Your Profile & Concierge Details</h2>
+                  <p className="text-gray-500 font-light text-sm mt-1">All details provided upon registration are preserved and secured in our private client registry.</p>
+                </div>
+
+                <div className="bg-white border border-stone-200 rounded-[2rem] p-8 md:p-10 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-stone-50 rounded-bl-full -z-0 opacity-50 pointer-events-none"></div>
+                  
                   {user ? (
-                    <div className="space-y-6">
-                      <div>
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Name</label>
-                        <p className="text-gray-900 font-medium text-lg">
-                          {user.user_metadata?.full_name || `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() || 'Valued Client'}
-                        </p>
+                    <div className="relative z-10 space-y-8">
+                      {/* Personal Identity */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="p-5 bg-stone-50 border border-stone-200 rounded-2xl">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">First Name</label>
+                          <p className="text-gray-900 font-bold text-lg capitalize">
+                            {user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || 'Valued'}
+                          </p>
+                        </div>
+                        <div className="p-5 bg-stone-50 border border-stone-200 rounded-2xl">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Last Name</label>
+                          <p className="text-gray-900 font-bold text-lg capitalize">
+                            {user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'Client'}
+                          </p>
+                        </div>
+                        <div className="p-5 bg-stone-50 border border-stone-200 rounded-2xl">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Full Registered Name</label>
+                          <p className="text-[#500000] font-bold text-lg capitalize">
+                            {user.user_metadata?.full_name || `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() || 'Valued Client'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="h-px bg-stone-100 w-full my-4"></div>
-                      <div>
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Email Address</label>
-                        <p className="text-gray-900 font-medium">{user.email}</p>
+
+                      <div className="h-px bg-stone-100 w-full"></div>
+
+                      {/* Contact & Verification Status */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Registered Email Address</label>
+                          <div className="flex items-center gap-3">
+                            <span className="text-gray-900 font-medium text-lg">{user.email}</span>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-50 border border-green-200 text-green-700 font-semibold text-[11px] rounded-full">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Authentication & Security</label>
+                          <p className="text-gray-900 font-medium capitalize flex items-center gap-2">
+                            <ShieldCheck className="w-5 h-5 text-[#500000]" />
+                            Protected via {user.app_metadata?.provider || 'Secure Email & Password'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="h-px bg-stone-100 w-full my-4"></div>
-                      <div>
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Sign-in Method</label>
-                        <p className="text-gray-900 font-medium capitalize">{user.app_metadata?.provider || 'Email'}</p>
+
+                      <div className="h-px bg-stone-100 w-full"></div>
+
+                      {/* Membership & Preferences */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-6 bg-amber-50/50 border border-amber-200/60 rounded-2xl">
+                          <div className="flex items-center gap-2 text-[#500000] font-bold text-xs uppercase tracking-widest mb-1">
+                            <Award className="w-4 h-4" /> Client Status
+                          </div>
+                          <h4 className="text-xl font-light text-gray-900" style={{ fontFamily: 'var(--font-cormorant), serif' }}>TRISH Sovereign Tier</h4>
+                          <p className="text-xs text-gray-500 font-light mt-1">Full access to Bespoke Concierge white-glove curation and artisan commissions.</p>
+                        </div>
+                        <div className="p-6 bg-stone-50 border border-stone-200 rounded-2xl">
+                          <div className="text-gray-900 font-bold text-xs uppercase tracking-widest mb-1">
+                            Concierge Bulletins & Shortlists
+                          </div>
+                          <p className="text-sm font-medium text-[#500000] mt-2">
+                            {user.user_metadata?.newsletter ? '✓ Subscribed to Private Shortlists & Event Briefings' : 'Standard Communications & Order Updates Only'}
+                          </p>
+                        </div>
                       </div>
                       
                       {user.email?.toLowerCase() === 'mayankrajdto@gmail.com' && (
@@ -307,7 +370,7 @@ export default function AccountPage() {
                           <div className="pt-4">
                             <Link 
                               href="/admin"
-                              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#500000] text-white rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all w-full md:w-auto"
+                              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#500000] text-white rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all w-full md:w-auto shadow-lg"
                             >
                               Open Admin Dashboard
                             </Link>
@@ -316,7 +379,10 @@ export default function AccountPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-gray-500 font-light">Loading profile details...</p>
+                    <div className="py-12 text-center">
+                      <div className="w-8 h-8 border-2 border-[#500000] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="text-gray-500 font-light text-sm">Loading your bespoke client dossier...</p>
+                    </div>
                   )}
                 </div>
               </div>

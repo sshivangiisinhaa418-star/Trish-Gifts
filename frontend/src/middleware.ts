@@ -80,7 +80,6 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/wishlist') ||
     request.nextUrl.pathname.startsWith('/checkout') ||
     request.nextUrl.pathname.startsWith('/account') ||
-    request.nextUrl.pathname.startsWith('/concierge') ||
     request.nextUrl.pathname.startsWith('/reveal');
 
   if (isGiftOrProtectedRoute && !user) {
