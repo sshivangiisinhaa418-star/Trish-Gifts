@@ -92,7 +92,13 @@ export async function middleware(request: NextRequest) {
     if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
       return NextResponse.redirect(new URL(redirectTo, request.url));
     }
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/discover', request.url));
+  }
+
+  // Redirect authenticated users trying to visit the public home page to /discover
+  const isHomePage = request.nextUrl.pathname === '/';
+  if (isHomePage && user) {
+    return NextResponse.redirect(new URL('/discover', request.url));
   }
 
   return supabaseResponse
