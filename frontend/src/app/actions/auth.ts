@@ -28,7 +28,9 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
   const headersList = await headers()
-  const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const host = headersList.get('host');
+  const protocol = host?.includes('localhost') ? 'http' : 'https';
+  const origin = headersList.get('origin') || (host ? `${protocol}://${host}` : null) || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
   const email = formData.get('email') as string
   const firstName = formData.get('first_name') as string

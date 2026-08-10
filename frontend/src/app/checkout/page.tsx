@@ -33,6 +33,7 @@ export default function CheckoutPage() {
         formData.append('recipient_email', email);
         formData.append('recipient_address', recipientAddress);
         formData.append('total_amount', cartTotal.toString());
+        formData.append('cart_items', JSON.stringify(cartItems));
         
         const result = await submitCheckout(formData);
         if (result?.error) {

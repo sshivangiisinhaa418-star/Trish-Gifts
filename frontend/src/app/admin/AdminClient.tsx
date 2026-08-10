@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, X, Upload, ChevronLeft, Gift, CalendarHeart, PartyPopper, CalendarDays, Minus } from 'lucide-react'
-import { uploadProduct } from '@/app/actions/admin'
+import { Plus, X, Upload, ChevronLeft, Gift, CalendarHeart, PartyPopper, CalendarDays, Minus, Package, MessageSquare } from 'lucide-react'
+import { uploadProduct, updateOrderStatus, updateTicketStatus } from '@/app/actions/admin'
 import Image from 'next/image'
 import { CATEGORIES, OCCASIONS, FESTIVALS, SPECIAL_DAYS } from '@/lib/constants/navigation'
 
@@ -19,7 +19,7 @@ type Product = {
   images: string[]
 }
 
-type GroupName = 'Categories' | 'Occasions' | 'Festivals' | 'Special Days'
+type GroupName = 'Categories' | 'Occasions' | 'Festivals' | 'Special Days' | 'Orders' | 'Concierge'
 
 const GROUPS = [
   { name: 'Categories', icon: <Gift className="w-5 h-5" />, items: CATEGORIES },
@@ -28,8 +28,18 @@ const GROUPS = [
   { name: 'Special Days', icon: <CalendarDays className="w-5 h-5" />, items: SPECIAL_DAYS },
 ] as const
 
-export default function AdminClient({ initialProducts }: { initialProducts: Product[] }) {
+export default function AdminClient({ 
+  initialProducts, 
+  initialOrders = [], 
+  initialTickets = [] 
+}: { 
+  initialProducts: Product[], 
+  initialOrders?: any[], 
+  initialTickets?: any[] 
+}) {
   const [products] = useState<Product[]>(initialProducts)
+  const [orders, setOrders] = useState<any[]>(initialOrders)
+  const [tickets, setTickets] = useState<any[]>(initialTickets)
   const [activeGroup, setActiveGroup] = useState<GroupName>('Occasions')
   const [activeItem, setActiveItem] = useState<string | null>(null)
   
@@ -76,7 +86,7 @@ export default function AdminClient({ initialProducts }: { initialProducts: Prod
           <p className="text-gray-500 font-light text-sm">Manage store inventory.</p>
         </div>
         <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">Store Sections</h2>
-        <nav className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
+        <nav className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide mb-8">
           {GROUPS.map((group) => (
             <button 
               key={group.name}
@@ -92,13 +102,35 @@ export default function AdminClient({ initialProducts }: { initialProducts: Prod
             </button>
           ))}
         </nav>
+
+        <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">Operations</h2>
+        <nav className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
+          <button 
+            onClick={() => handleGroupChange('Orders')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+              activeGroup === 'Orders' ? 'bg-[#500000] text-white shadow-md' : 'text-gray-600 hover:bg-white hover:text-gray-900'
+            }`}
+          >
+            <Package className="w-5 h-5" />
+            <span className="text-sm font-medium">Orders ({orders.length})</span>
+          </button>
+          <button 
+            onClick={() => handleGroupChange('Concierge')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+              activeGroup === 'Concierge' ? 'bg-[#500000] text-white shadow-md' : 'text-gray-600 hover:bg-white hover:text-gray-900'
+            }`}
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-sm font-medium">Concierge Tickets ({tickets.length})</span>
+          </button>
+        </nav>
       </div>
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 p-6 lg:p-10 xl:p-16 w-full max-w-[1400px]">
         
         {/* LEVEL 1: Grid of items */}
-        {!activeItem && (
+        {!activeItem && activeGroup !== 'Orders' && activeGroup !== 'Concierge' && activeGroupData && (
           <div className="animate-fade-up">
             <h2 className="text-3xl text-gray-900 mb-8" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
               Select a {activeGroup === 'Categories' ? 'Category' : activeGroup.slice(0, -1)}
@@ -194,6 +226,98 @@ export default function AdminClient({ initialProducts }: { initialProducts: Prod
               ))}
               
             </div>
+          </div>
+        )}
+
+        {/* ORDERS DASHBOARD */}
+        {activeGroup === 'Orders' && (
+          <div className="animate-fade-up">
+            <h2 className="text-3xl text-gray-900 mb-6" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Order Fulfillment Dashboard</h2>
+            {orders.length === 0 ? (
+              <div className="bg-white p-12 text-center rounded-2xl border border-stone-200 text-gray-500 font-light">No customer orders recorded yet.</div>
+            ) : (
+              <div className="space-y-6">
+                {orders.map((order) => (
+                  <div key={order.id} className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center pb-4 border-b border-stone-100 gap-4">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Order ID: #{order.id.slice(0, 8)}</span>
+                        <h3 className="text-lg font-medium text-gray-900 mt-1">{order.recipient_name} ({order.recipient_email})</h3>
+                        <p className="text-xs text-gray-500 font-light mt-1">Address: {order.recipient_address}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-[#500000]">₹{Number(order.total_amount).toLocaleString()}</span>
+                        <select
+                          value={order.status || 'Processing'}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            await updateOrderStatus(order.id, newStatus);
+                            setOrders(orders.map(o => o.id === order.id ? { ...o, status: newStatus } : o));
+                          }}
+                          className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                        >
+                          <option value="Processing">Processing</option>
+                          <option value="Confirmed">Confirmed</option>
+                          <option value="Customizing">Customizing</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </div>
+                    {order.order_items && order.order_items.length > 0 && (
+                      <div className="mt-4 bg-stone-50 rounded-xl p-4 space-y-2">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Line Items</span>
+                        {order.order_items.map((item: any) => (
+                          <div key={item.id} className="flex justify-between items-center text-xs text-gray-700">
+                            <span>{item.quantity}x {item.product_name} {item.gift_wrap && '🎁 (Wrap)'}</span>
+                            <span>₹{Number(item.price * item.quantity).toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CONCIERGE DASHBOARD */}
+        {activeGroup === 'Concierge' && (
+          <div className="animate-fade-up">
+            <h2 className="text-3xl text-gray-900 mb-6" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Concierge & Support Tickets</h2>
+            {tickets.length === 0 ? (
+              <div className="bg-white p-12 text-center rounded-2xl border border-stone-200 text-gray-500 font-light">No support tickets or concierge inquiries yet.</div>
+            ) : (
+              <div className="space-y-6">
+                {tickets.map((ticket) => (
+                  <div key={ticket.id} className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center pb-3 border-b border-stone-100 gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{ticket.inquiry_type || 'General Inquiry'}</span>
+                        <h3 className="text-base font-medium text-gray-900 mt-1">{ticket.first_name} {ticket.last_name} ({ticket.email})</h3>
+                      </div>
+                      <select
+                        value={ticket.status || 'Open'}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          await updateTicketStatus(ticket.id, newStatus);
+                          setTickets(tickets.map(t => t.id === ticket.id ? { ...t, status: newStatus } : t));
+                        }}
+                        className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                      >
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </div>
+                    <p className="mt-3 text-sm text-gray-600 font-light whitespace-pre-wrap">{ticket.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

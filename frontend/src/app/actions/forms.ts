@@ -21,14 +21,37 @@ export async function submitCheckout(formData: FormData) {
     status: 'Processing'
   }
 
-  const { error } = await supabase.from('orders').insert(orderData)
+  const { data: insertedOrder, error } = await supabase.from('orders').insert(orderData).select('id').single()
 
   if (error) {
     return { error: error.message }
   }
 
+  const cartItemsRaw = formData.get('cart_items') as string | null
+  if (cartItemsRaw && insertedOrder) {
+    try {
+      const items = JSON.parse(cartItemsRaw)
+      if (Array.isArray(items) && items.length > 0) {
+        const orderItemsData = items.map((item: any) => ({
+          order_id: insertedOrder.id,
+          product_id: item.id ? item.id.toString() : null,
+          product_name: item.title || 'Gift Item',
+          price: item.price || 0,
+          quantity: item.quantity || 1,
+          gift_wrap: Boolean(item.giftingOptions?.giftWrap),
+          gift_message: item.giftingOptions?.giftMessage || null,
+          delivery_date: item.giftingOptions?.deliveryDate || null
+        }))
+        await supabase.from('order_items').insert(orderItemsData)
+      }
+    } catch (err) {
+      console.error('Failed to parse and record cart items:', err)
+    }
+  }
+
   redirect('/checkout/success')
 }
+
 
 export async function submitConcierge(formData: FormData) {
   const supabase = await createClient()

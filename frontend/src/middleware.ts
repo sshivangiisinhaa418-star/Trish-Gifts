@@ -74,13 +74,12 @@ export async function middleware(request: NextRequest) {
   
   // All gift browsing, searching, product details, customizing, and account actions require authentication
   const isGiftOrProtectedRoute = 
-    request.nextUrl.pathname.startsWith('/discover') ||
     request.nextUrl.pathname.startsWith('/product') ||
-    request.nextUrl.pathname.startsWith('/gift-finder') ||
     request.nextUrl.pathname.startsWith('/wishlist') ||
     request.nextUrl.pathname.startsWith('/checkout') ||
     request.nextUrl.pathname.startsWith('/account') ||
-    request.nextUrl.pathname.startsWith('/reveal');
+    request.nextUrl.pathname.startsWith('/reveal') ||
+    request.nextUrl.pathname.startsWith('/concierge');
 
   if (isGiftOrProtectedRoute && !user) {
     const loginUrl = new URL('/login', request.url);

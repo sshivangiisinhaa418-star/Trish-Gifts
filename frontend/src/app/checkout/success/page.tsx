@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { CheckCircle2, Copy, Gift, Send, Calendar, ArrowRight, Sparkles, Package, Truck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useCart } from "@/lib/context/CartContext";
 
 export default function OrderSuccessPage() {
   const [copied, setCopied] = useState(false);
+  const { clearCart } = useCart();
+
+  useEffect(() => {
+    clearCart();
+  }, [clearCart]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText("https://trish.com/reveal/xyz123");

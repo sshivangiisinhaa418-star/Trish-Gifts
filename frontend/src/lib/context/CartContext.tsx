@@ -23,6 +23,7 @@ type CartContextType = {
   cartItems: CartItem[];
   addToCart: (item: Omit<CartItem, "id">) => void;
   removeFromCart: (id: string) => void;
+  clearCart: () => void;
   cartTotal: number;
 };
 
@@ -67,6 +68,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   const cartTotal = cartItems.reduce((total, item) => {
     let itemTotal = item.price * item.quantity;
     if (item.giftingOptions?.giftWrap) itemTotal += 250;
@@ -83,6 +88,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartItems,
         addToCart,
         removeFromCart,
+        clearCart,
         cartTotal,
       }}
     >

@@ -23,24 +23,24 @@ const collectionsData: Record<CollectionCategory, CollectionItem[]> = {
     { id: 6, title: "Corporate", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80" },
   ],
   Festivals: [
-    { id: 1, title: "Diwali", image: "https://images.unsplash.com/photo-1572000572064-db08b8deee71?w=600&q=80" },
-    { id: 2, title: "Christmas", image: "https://images.unsplash.com/photo-1512474932049-782d6e58f000?w=600&q=80" },
+    { id: 1, title: "Diwali", image: "https://images.unsplash.com/photo-1607083206968-13611e3d76ba?w=600&q=80" },
+    { id: 2, title: "Christmas", image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=600&q=80" },
     { id: 3, title: "Holi", image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&q=80" },
     { id: 4, title: "Eid", image: "https://images.unsplash.com/photo-1564759077036-3def242e69c5?w=600&q=80" },
-    { id: 5, title: "Raksha Bandhan", image: "https://images.unsplash.com/photo-1600858852352-78d10b777a04?w=600&q=80" },
-    { id: 6, title: "New Year", image: "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=600&q=80" },
+    { id: 5, title: "Raksha Bandhan", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&q=80" },
+    { id: 6, title: "New Year", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600&q=80" },
   ],
   "Special Days": [
-    { id: 1, title: "Valentine's Day", image: "https://images.unsplash.com/photo-1518192167132-8414571ae814?w=600&q=80" },
-    { id: 2, title: "Mother's Day", image: "https://images.unsplash.com/photo-1525026198548-4baa0d203f7e?w=600&q=80" },
-    { id: 3, title: "Father's Day", image: "https://images.unsplash.com/photo-1623910398634-9273c5d6e246?w=600&q=80" },
+    { id: 1, title: "Valentine's Day", image: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&q=80" },
+    { id: 2, title: "Mother's Day", image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&q=80" },
+    { id: 3, title: "Father's Day", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80" },
     { id: 4, title: "Women's Day", image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=600&q=80" },
   ],
   Sentiments: [
-    { id: 1, title: "Thank You", image: "https://images.unsplash.com/photo-1527383214149-b6b85cb15629?w=600&q=80" },
-    { id: 2, title: "I'm Sorry", image: "https://images.unsplash.com/photo-1596131461937-238d2b7d41f3?w=600&q=80" },
+    { id: 1, title: "Thank You", image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=600&q=80" },
+    { id: 2, title: "I'm Sorry", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&q=80" },
     { id: 3, title: "Get Well Soon", image: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=600&q=80" },
-    { id: 4, title: "Congratulations", image: "https://images.unsplash.com/photo-1530103862676-de3c9de59f9e?w=600&q=80" },
+    { id: 4, title: "Congratulations", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600&q=80" },
   ]
 };
 

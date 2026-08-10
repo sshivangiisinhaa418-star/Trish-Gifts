@@ -100,3 +100,88 @@ export async function getProducts() {
   
   return data || []
 }
+
+export async function getAllOrders() {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, order_items(*)')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Failed to fetch orders:', error)
+    return []
+  }
+
+  return data || []
+}
+
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return { error: 'Unauthorized' }
+  }
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ status: newStatus })
+    .eq('id', orderId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/admin')
+  return { success: true }
+}
+
+export async function getAllSupportTickets() {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('support_tickets')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Failed to fetch support tickets:', error)
+    return []
+  }
+
+  return data || []
+}
+
+export async function updateTicketStatus(ticketId: string, newStatus: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return { error: 'Unauthorized' }
+  }
+
+  const { error } = await supabase
+    .from('support_tickets')
+    .update({ status: newStatus })
+    .eq('id', ticketId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/admin')
+  return { success: true }
+}
+

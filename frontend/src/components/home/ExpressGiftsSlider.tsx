@@ -54,7 +54,7 @@ export default function ExpressGiftsSlider() {
             Same-Day Delivery
           </div>
           <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-900 tracking-tight">
-            Forgot a special day? <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-accent-500 italic font-light">We've got you.</span>
+            Forgot a special day? We've got you. <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-accent-500 italic font-light">Last minute under rs. 700</span>
           </h2>
         </div>
         <div className="flex gap-2">
