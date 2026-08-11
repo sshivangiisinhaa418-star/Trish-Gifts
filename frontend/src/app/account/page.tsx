@@ -7,6 +7,8 @@ import GlobalNav from "@/components/layout/GlobalNav";
 import { logout } from "@/app/actions/auth";
 import { createBrowserClient } from "@supabase/ssr";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useCart } from "@/lib/context/CartContext";
+import { useWishlist } from "@/lib/context/WishlistContext";
 
 const initialEvents = [
   { id: 1, name: "Sarah's Anniversary", date: "Oct 28, 2026", daysLeft: 3, relation: "Wife", intent: "Anniversary" },
@@ -25,6 +27,8 @@ export default function AccountPage() {
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [supabase, setSupabase] = useState<any>(null);
+  const { clearCart } = useCart();
+  const { clearWishlist } = useWishlist();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -157,7 +161,15 @@ export default function AccountPage() {
                 <Heart className="w-4 h-4" />
                 <span className="text-sm font-medium">My Wishlist</span>
               </Link>
-              <form action={logout} className="mt-8">
+              <form action={logout} onSubmit={() => {
+                clearCart();
+                clearWishlist();
+                localStorage.removeItem('trish_cart');
+                localStorage.removeItem('trish_wishlist');
+                if (supabase) {
+                  supabase.auth.signOut();
+                }
+              }} className="mt-8">
                 <button type="submit" className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all w-full text-left">
                   <LogOut className="w-4 h-4" />
                   <span className="text-sm font-medium">Logout</span>
