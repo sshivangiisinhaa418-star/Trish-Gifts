@@ -30,8 +30,8 @@ export default function Header() {
 
           {/* Main Links */}
           <div className="hidden lg:flex items-center gap-8 pt-2">
-            <Link href="/heritage" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Our Heritage</Link>
-            <Link href="/concierge" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Services</Link>
+            <Link href="/heritage" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Our Story</Link>
+            <Link href="/concierge" className="text-xs font-bold text-gray-500 hover:text-[#500000] uppercase tracking-widest transition-colors">Our Services</Link>
           </div>
         </div>
 
@@ -51,7 +51,7 @@ export default function Header() {
                 if (e.key === 'Enter') {
                   const val = e.currentTarget.value.trim();
                   const dest = val ? `/discover?q=${encodeURIComponent(val)}` : '/discover';
-                  window.location.href = user ? dest : `/login?redirectTo=${encodeURIComponent(dest)}`;
+                  window.location.href = dest;
                 }
               }}
               className="block w-full pl-11 pr-4 py-3 border-0 bg-gray-100/80 rounded-full text-sm font-medium text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-900 focus:bg-white transition-all outline-none"
@@ -64,25 +64,25 @@ export default function Header() {
         <div className="flex items-center gap-1.5 sm:gap-3">
           {/* AI Gift Finder Button */}
           <Link 
-            href={user ? "/gift-finder" : "/login?redirectTo=%2Fgift-finder"}
+            href="/gift-finder"
             className="hidden md:flex items-center gap-1.5 px-4 py-2 bg-[#500000] text-white rounded-full hover:bg-[#600000] transition-colors text-xs font-medium mr-1 shadow-sm whitespace-nowrap"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             Customize
           </Link>
           <Link 
-            href={user ? "/gift-finder" : "/login?redirectTo=%2Fgift-finder"}
+            href="/gift-finder"
             className="md:hidden p-2 text-[#500000] hover:bg-red-50 transition-colors rounded-full relative group"
           >
             <Sparkles className="w-5 h-5" />
           </Link>
           
           {/* Mobile Search Icon */}
-          <Link href={user ? "/discover" : "/login?redirectTo=%2Fdiscover"} className="p-2 md:hidden text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100">
+          <Link href="/discover" className="p-2 md:hidden text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100">
             <Search className="w-5 h-5" />
           </Link>
           
-          <Link href={user ? "/wishlist" : "/login?redirectTo=%2Fwishlist"} className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group">
+          <Link href="/wishlist" className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group">
             <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
             {wishlistItems.length > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
@@ -91,11 +91,7 @@ export default function Header() {
           
           <button 
             onClick={() => {
-              if (!user) {
-                window.location.href = "/login?redirectTo=%2Fcheckout";
-              } else {
-                openCart();
-              }
+              openCart();
             }}
             className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 flex items-center gap-1 group"
           >

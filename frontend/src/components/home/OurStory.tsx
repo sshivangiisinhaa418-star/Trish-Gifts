@@ -6,8 +6,9 @@ import { Heart, Link as LinkIcon, Star, HandHeart } from "lucide-react";
 
 export default function OurStory() {
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-stone-50 text-gray-900 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-rose-50/50 rounded-l-full blur-3xl -z-10 transform translate-x-1/2"></div>
+    <section className="py-16 bg-gradient-to-b from-rose-50 via-white to-rose-100 text-gray-900 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-rose-100/60 rounded-l-full blur-3xl -z-10 transform translate-x-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-full bg-amber-50/50 rounded-r-full blur-3xl -z-10 transform -translate-x-1/2"></div>
       
       <div className="container mx-auto px-4 max-w-6xl relative z-10">
         
@@ -91,10 +92,6 @@ export default function OurStory() {
             <p className="text-gray-600 font-light text-base md:text-lg leading-relaxed mb-6">
               Every TRISH gift is carefully prepared to make the experience as memorable as the gift itself. From elegant presentation to the finishing touches, we believe every detail should reflect the thought and care behind the gesture.
             </p>
-            <Link href="/discover" className="inline-flex items-center gap-2 text-[#500000] font-semibold uppercase tracking-widest text-xs hover:gap-4 transition-all group">
-              Discover Our Collections
-              <span className="text-lg font-light">→</span>
-            </Link>
           </div>
         </div>
 

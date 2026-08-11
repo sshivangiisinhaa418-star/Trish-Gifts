@@ -1,5 +1,5 @@
 import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+
 import GiftWizard from "@/components/gift-finder/GiftWizard";
 import Image from "next/image";
 import { getAllProducts } from "@/app/actions/store";
@@ -13,12 +13,12 @@ export default async function GiftFinderPage() {
   const products = await getAllProducts();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="h-[100dvh] bg-white flex flex-col overflow-hidden">
       <Header />
       
       <main className="flex-1 flex flex-col md:flex-row">
-        {/* Left Side: Visual/Editorial Card */}
-        <div className="w-full md:w-5/12 p-8 md:p-12 lg:p-20 flex items-center justify-center min-h-[40vh] md:min-h-[calc(100vh-80px)]">
+        {/* Left Side: Visual/Editorial Card (Hidden on mobile) */}
+        <div className="hidden md:flex w-full md:w-5/12 p-8 md:p-12 lg:p-20 items-center justify-center h-full">
           <div className="relative w-full h-full max-h-[650px] min-h-[450px] rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 group flex flex-col justify-end p-8 md:p-10">
             
             <div className="absolute inset-0">
@@ -51,19 +51,19 @@ export default async function GiftFinderPage() {
       </div>
 
         {/* Right Side: Quiz */}
-        <div className="w-full md:w-7/12 bg-[#faf9f6] px-6 py-16 md:py-24 md:px-12 lg:px-24 flex items-center justify-center min-h-[60vh] md:min-h-[calc(100vh-80px)] relative">
+        <div className="w-full md:w-7/12 bg-[#faf9f6] md:px-6 md:py-8 lg:px-24 flex items-center justify-center h-full relative">
           
-          {/* Classic Double Frame Border */}
-          <div className="absolute inset-4 md:inset-8 border-[1px] border-[#500000]/15 pointer-events-none rounded-xl" />
-          <div className="absolute inset-5 md:inset-10 border-[1px] border-[#500000]/5 pointer-events-none rounded-lg" />
+          {/* Classic Double Frame Border - Hidden on mobile */}
+          <div className="hidden md:block absolute inset-4 md:inset-8 border-[1px] border-[#500000]/15 pointer-events-none rounded-xl" />
+          <div className="hidden md:block absolute inset-5 md:inset-10 border-[1px] border-[#500000]/5 pointer-events-none rounded-lg" />
           
-          <div className="w-full max-w-3xl relative z-10 bg-white/50 backdrop-blur-sm p-8 md:p-12 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white">
+          <div className="w-full h-full md:h-auto max-w-3xl relative z-10 md:bg-white/50 md:backdrop-blur-sm md:p-8 rounded-2xl md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] md:border border-white flex flex-col">
             <GiftWizard />
           </div>
         </div>
       </main>
 
-      <Footer />
+
     </div>
   );
 }

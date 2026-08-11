@@ -3,9 +3,7 @@ import ExpressGiftsSlider from "@/components/home/ExpressGiftsSlider";
 import ProductCarousel from "@/components/home/ProductCarousel";
 import CollectionsGrid from "@/components/home/CollectionsGrid";
 import OffersBanner from "@/components/home/OffersBanner";
-import OurStory from "@/components/home/OurStory";
-import OurServices from "@/components/home/OurServices";
-import FAQ from "@/components/home/FAQ";
+
 import Footer from "@/components/layout/Footer";
 import { getAllProducts } from "@/app/actions/store";
 import Link from "next/link";
@@ -81,14 +79,7 @@ export default async function Home() {
         {/* 6. Same-Day Delivery Banner */}
         <ExpressGiftsSlider />
 
-        {/* 7. Our Story */}
-        <OurStory />
-
-        {/* 8. Our Services */}
-        <OurServices />
-
-        {/* 9. FAQ */}
-        <FAQ />
+        {/* 7. Removed Sections */}
         
       </main>
       

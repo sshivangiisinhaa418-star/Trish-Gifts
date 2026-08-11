@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Sparkles, Diamond } from "lucide-react";
+import { Search, Sparkles, Crown } from "lucide-react";
 
 export default function OurServices() {
   const services = [
@@ -22,7 +22,7 @@ export default function OurServices() {
     {
       title: "Bespoke Experience",
       description: "For those who want a completely personalised gifting journey, our dedicated gifting assistants work with you to create a one-of-a-kind gift basket. From selecting the right products to perfecting the final presentation, every detail is curated around your vision.",
-      icon: <Diamond className="w-8 h-8 text-[#500000]" />,
+      icon: <Crown className="w-8 h-8 text-[#500000]" />,
       link: "/concierge",
       linkText: "Premium Customisation"
     }

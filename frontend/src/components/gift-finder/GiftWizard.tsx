@@ -41,11 +41,12 @@ const MOCK_RESULTS = [
 export default function GiftWizard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [inputText, setInputText] = useState("");
   const [step, setStep] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
   useEffect(() => {
@@ -188,7 +189,7 @@ export default function GiftWizard() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white rounded-3xl border border-gray-100 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-[700px]">
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-none md:rounded-3xl border-none md:border md:border-gray-100 shadow-none md:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-full md:h-[700px]">
       
       {/* Chat Header */}
       <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
@@ -284,11 +285,11 @@ export default function GiftWizard() {
                           </h4>
                           <p className="text-xs text-gray-500 font-light mb-4 line-clamp-2">{result.description}</p>
                         </div>
-                        <div className="flex items-center justify-between mt-auto">
+                        <div className="flex flex-col gap-2 mt-auto">
                           <span className="text-sm font-bold text-gray-900">₹{result.price}</span>
                           <button 
                             onClick={() => handleResultSelect(result.id)}
-                            className="px-4 py-2 bg-gray-900 text-white text-[11px] font-bold tracking-widest uppercase rounded-full hover:bg-[#500000] transition-colors"
+                            className="w-full py-2 bg-gray-900 text-white text-[11px] font-bold tracking-widest uppercase rounded-full hover:bg-[#500000] transition-colors"
                           >
                             Select
                           </button>
@@ -336,18 +337,35 @@ export default function GiftWizard() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area (Disabled since it's button-driven for now) */}
+      {/* Input Area */}
       <div className="px-6 py-4 bg-white border-t border-gray-100">
         <div className="relative flex items-center">
           <input 
             type="text" 
-            placeholder="Select an option above..." 
-            disabled 
-            className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-full text-sm focus:outline-none cursor-not-allowed opacity-60"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && inputText.trim() && !isTyping && messages[messages.length - 1]?.type !== 'results' && messages[messages.length - 1]?.type !== 'success') {
+                handleOptionSelect(inputText.trim());
+                setInputText('');
+              }
+            }}
+            placeholder="Type your answer or select an option above..." 
+            disabled={isTyping || messages[messages.length - 1]?.type === 'results' || messages[messages.length - 1]?.type === 'success'} 
+            className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-full text-sm focus:outline-none disabled:opacity-60"
           />
-          <div className="absolute right-2 p-2 text-gray-300">
+          <button 
+            onClick={() => {
+              if (inputText.trim() && !isTyping && messages[messages.length - 1]?.type !== 'results' && messages[messages.length - 1]?.type !== 'success') {
+                handleOptionSelect(inputText.trim());
+                setInputText('');
+              }
+            }}
+            disabled={isTyping || !inputText.trim() || messages[messages.length - 1]?.type === 'results' || messages[messages.length - 1]?.type === 'success'}
+            className="absolute right-2 p-2 text-gray-400 hover:text-[#500000] disabled:opacity-50 transition-colors"
+          >
             <Send className="w-5 h-5" />
-          </div>
+          </button>
         </div>
       </div>
 

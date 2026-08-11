@@ -72,14 +72,12 @@ export async function middleware(request: NextRequest) {
   // Protected routes logic
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
   
-  // All gift browsing, searching, product details, customizing, and account actions require authentication
+  // Protect account, checkout, reveal, product (if needed)
   const isGiftOrProtectedRoute = 
     request.nextUrl.pathname.startsWith('/product') ||
-    request.nextUrl.pathname.startsWith('/wishlist') ||
     request.nextUrl.pathname.startsWith('/checkout') ||
     request.nextUrl.pathname.startsWith('/account') ||
-    request.nextUrl.pathname.startsWith('/reveal') ||
-    request.nextUrl.pathname.startsWith('/concierge');
+    request.nextUrl.pathname.startsWith('/reveal');
 
   if (isGiftOrProtectedRoute && !user) {
     const loginUrl = new URL('/login', request.url);
