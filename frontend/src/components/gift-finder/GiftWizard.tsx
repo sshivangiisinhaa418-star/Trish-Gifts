@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Send, Gift, RefreshCcw, CheckCircle } from "lucide-react";
+import { Sparkles, Send, Gift, RefreshCcw, LogIn } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/lib/context/AuthContext";
 
 type Message = {
   id: string;
   sender: "ai" | "user";
   text: string;
   options?: string[];
-  type?: "text" | "options" | "results" | "success";
+  type?: "text" | "options" | "results" | "success" | "login";
 };
 
 // Mock curated results
@@ -43,7 +44,10 @@ export default function GiftWizard() {
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState("");
   const [step, setStep] = useState(0);
+  const [isRestoring, setIsRestoring] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const { user } = useAuth();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -54,30 +58,83 @@ export default function GiftWizard() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    // Initial greeting
-    setTimeout(() => {
-      setMessages([
-        {
-          id: "msg_1",
-          sender: "ai",
-          text: "Hello! I'm your TRISH Concierge. Let's customize the perfect gift. To begin, what is the occasion?",
-          type: "options",
-          options: ["Birthday", "Anniversary", "Wedding", "Thank You", "Just Because"]
-        }
-      ]);
-    }, 500);
+    const saved = localStorage.getItem("giftWizardState");
+    const params = new URLSearchParams(window.location.search);
+    const isReturningFromLogin = params.get("step") === "results";
+
+    if (saved && isReturningFromLogin) {
+      const parsed = JSON.parse(saved);
+      // Filter out the old login message
+      const filteredMessages = parsed.messages.filter((m: Message) => m.type !== "login");
+      setMessages(filteredMessages);
+      setStep(parsed.step); 
+      setIsRestoring(true);
+      localStorage.removeItem("giftWizardState");
+      // Clean up URL without reload
+      window.history.replaceState({}, '', '/gift-finder');
+    } else {
+      localStorage.removeItem("giftWizardState");
+      // Initial greeting
+      setTimeout(() => {
+        setMessages([
+          {
+            id: "msg_1",
+            sender: "ai",
+            text: "Hello! I'm your Concierge. Let's curate the perfect gift. To begin, what is the occasion?",
+            type: "options",
+            options: ["Birthday", "Anniversary", "Congratulations", "Thank you", "I love you", "Festival", "Other"]
+          }
+        ]);
+      }, 500);
+    }
   }, []);
 
-  const handleOptionSelect = (option: string) => {
-    // Add user message
+  // Trigger results generation once authenticated user is restored
+  useEffect(() => {
+    if (isRestoring && user) {
+      setIsRestoring(false);
+      setIsTyping(true);
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages(prev => [...prev, {
+          id: `msg_ai_${Date.now()}_results`,
+          sender: "ai",
+          text: "Welcome back! Here are 3 exquisite options we've designed for you based on your preferences. Which arrangement do you prefer?",
+          type: "results"
+        }]);
+        setStep(5);
+      }, 1500);
+    } else if (isRestoring && user === null) {
+      // In case they didn't actually login and came back as guest
+      // Wait a moment for auth context to initialize, if still null, prompt again
+      const timer = setTimeout(() => {
+        if (!user) {
+          setIsRestoring(false);
+          setMessages(prev => [...prev, {
+            id: `msg_ai_${Date.now()}_login`,
+            sender: "ai",
+            text: "To curate your highly personalized options, please log in or create an account.",
+            type: "login"
+          }]);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isRestoring, user]);
+
+  const handleLoginRedirect = () => {
+    localStorage.setItem("giftWizardState", JSON.stringify({ messages, step }));
+    window.location.href = "/login?redirectTo=" + encodeURIComponent("/gift-finder?step=results");
+  };
+
+  const handleUserInput = (input: string) => {
     const userMsg: Message = {
       id: `msg_user_${Date.now()}`,
       sender: "user",
-      text: option,
+      text: input,
       type: "text"
     };
     
-    // Remove options from previous AI message to prevent re-clicking
     setMessages(prev => {
       const newMsgs = [...prev];
       const lastMsg = newMsgs[newMsgs.length - 1];
@@ -89,31 +146,65 @@ export default function GiftWizard() {
 
     setIsTyping(true);
 
-    // AI Response logic based on step
     setTimeout(() => {
       setIsTyping(false);
-      let nextAiMsg: Message;
+      let nextAiMsg: Message | null = null;
+      let nextStep = step;
 
       if (step === 0) {
         nextAiMsg = {
           id: `msg_ai_${Date.now()}`,
           sender: "ai",
-          text: `Wonderful. For a ${option}, which color themes would you prefer for the packaging?`,
+          text: `Wonderful! Let's make their occasion a little more special. Who are you gifting it to?`,
           type: "options",
-          options: ["Gold & Crimson", "Pastel Pink & White", "Monochrome Black", "Emerald & Silver", "Earthy Tones"]
+          options: ["Mom", "Dad", "Partner", "Son", "Daughter", "Sibling", "Friend", "Colleague", "Other"]
         };
-        setStep(1);
+        nextStep = 1;
       } else if (step === 1) {
+        if (input.toLowerCase() === "other") {
+          nextAiMsg = {
+            id: `msg_ai_${Date.now()}`,
+            sender: "ai",
+            text: `Tell us who you're gifting it to.`,
+            type: "text"
+          };
+          nextStep = 1.5;
+        } else {
+          nextAiMsg = {
+            id: `msg_ai_${Date.now()}`,
+            sender: "ai",
+            text: `Lovely! Now, tell me a little about them. What do they love, what are they like, or what makes them them?`,
+            type: "text"
+          };
+          nextStep = 2;
+        }
+      } else if (step === 1.5) {
         nextAiMsg = {
           id: `msg_ai_${Date.now()}`,
           sender: "ai",
-          text: "A beautiful choice. What kind of basket or container would you like to use for presenting the products?",
-          type: "options",
-          options: ["Wicker Basket", "Velvet Box", "Wooden Crate", "Leather Trunk", "Minimalist Tray"]
+          text: `Lovely! Now, tell me a little about them. What do they love, what are they like, or what makes them them?`,
+          type: "text"
         };
-        setStep(2);
+        nextStep = 2;
       } else if (step === 2) {
-        // Generating results step
+        nextAiMsg = {
+          id: `msg_ai_${Date.now()}`,
+          sender: "ai",
+          text: `And how much would you like to spend on this special gift?`,
+          type: "options",
+          options: ["₹3,000", "₹4,000 – ₹5,000", "₹5,000 – ₹7,000", "₹7,000 – ₹10,000"]
+        };
+        nextStep = 3;
+      } else if (step === 3) {
+        nextAiMsg = {
+          id: `msg_ai_${Date.now()}`,
+          sender: "ai",
+          text: `And finally, how would you like them to feel when they receive it?`,
+          type: "options",
+          options: ["❤️ Loved", "✨ Surprised", "🥰 Pampered", "💛 Appreciated", "🎉 Excited", "🫶 Comforted", "💭 Nostalgic", "🌟 Thoughtfully understood"]
+        };
+        nextStep = 4;
+      } else if (step === 4) {
         setMessages(prev => [...prev, {
           id: `msg_ai_${Date.now()}_curating`,
           sender: "ai",
@@ -122,22 +213,34 @@ export default function GiftWizard() {
         }]);
         
         setIsTyping(true);
-        
         setTimeout(() => {
           setIsTyping(false);
-          setMessages(prev => [...prev, {
-            id: `msg_ai_${Date.now()}`,
-            sender: "ai",
-            text: "Here are 3 exquisite options we've designed for you. Which arrangement do you prefer?",
-            type: "results"
-          }]);
-          setStep(3);
-        }, 2500);
+          
+          if (!user) {
+            setMessages(prev => [...prev, {
+              id: `msg_ai_${Date.now()}_login`,
+              sender: "ai",
+              text: "To curate your highly personalized options and save your preferences, please log in or create an account.",
+              type: "login"
+            }]);
+          } else {
+            setMessages(prev => [...prev, {
+              id: `msg_ai_${Date.now()}`,
+              sender: "ai",
+              text: "Here are 3 exquisite options we've designed for you. Which arrangement do you prefer?",
+              type: "results"
+            }]);
+            setStep(5);
+          }
+        }, 1500);
         return;
       }
-      
-      setMessages(prev => [...prev, nextAiMsg]);
-    }, 1200);
+
+      if (nextAiMsg) {
+        setStep(nextStep);
+        setMessages(prev => [...prev, nextAiMsg]);
+      }
+    }, 1000);
   };
 
   const handleResultSelect = (resultId: string) => {
@@ -148,7 +251,7 @@ export default function GiftWizard() {
       const newMsgs = [...prev];
       const lastMsg = newMsgs[newMsgs.length - 1];
       if (lastMsg && lastMsg.type === "results") {
-        lastMsg.type = "text"; // Hide results to prevent re-selection
+        lastMsg.type = "text"; 
       }
       return [...newMsgs, {
         id: `msg_user_${Date.now()}`,
@@ -182,17 +285,17 @@ export default function GiftWizard() {
           sender: "ai",
           text: "Hello again! Let's start over. What is the occasion for the gift?",
           type: "options",
-          options: ["Birthday", "Anniversary", "Wedding", "Thank You", "Just Because"]
+          options: ["Birthday", "Anniversary", "Congratulations", "Thank you", "I love you", "Festival", "Other"]
         }
       ]);
     }, 800);
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white rounded-none md:rounded-3xl border-none md:border md:border-gray-100 shadow-none md:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-full md:h-[700px]">
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-none md:rounded-3xl border-none md:border md:border-gray-100 shadow-none md:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] flex flex-col min-h-screen md:min-h-0 md:h-[700px] overflow-hidden">
       
       {/* Chat Header */}
-      <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+      <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-[#500000] flex items-center justify-center shadow-md">
             <Sparkles className="w-6 h-6 text-amber-200" />
@@ -249,12 +352,30 @@ export default function GiftWizard() {
                   {msg.options.map((opt, i) => (
                     <button
                       key={i}
-                      onClick={() => handleOptionSelect(opt)}
+                      onClick={() => handleUserInput(opt)}
                       className="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-full text-sm font-medium hover:border-[#500000] hover:text-[#500000] transition-all hover:shadow-sm"
                     >
                       {opt}
                     </button>
                   ))}
+                </motion.div>
+              )}
+              
+              {/* Login Request */}
+              {msg.type === "login" && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-4 ml-2"
+                >
+                  <button 
+                    onClick={handleLoginRedirect}
+                    className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-full font-bold uppercase tracking-widest text-xs hover:bg-[#500000] transition-colors shadow-md"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Log In to Continue
+                  </button>
                 </motion.div>
               )}
 
@@ -334,11 +455,11 @@ export default function GiftWizard() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4 w-full shrink-0" />
       </div>
 
       {/* Input Area */}
-      <div className="px-6 py-4 bg-white border-t border-gray-100">
+      <div className="px-6 py-4 bg-white border-t border-gray-100 shrink-0">
         <div className="relative flex items-center">
           <input 
             type="text" 
@@ -346,22 +467,22 @@ export default function GiftWizard() {
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && inputText.trim() && !isTyping && messages[messages.length - 1]?.type !== 'results' && messages[messages.length - 1]?.type !== 'success') {
-                handleOptionSelect(inputText.trim());
+                handleUserInput(inputText.trim());
                 setInputText('');
               }
             }}
             placeholder="Type your answer or select an option above..." 
-            disabled={isTyping || messages[messages.length - 1]?.type === 'results' || messages[messages.length - 1]?.type === 'success'} 
+            disabled={isTyping || messages[messages.length - 1]?.type === 'results' || messages[messages.length - 1]?.type === 'success' || messages[messages.length - 1]?.type === 'login'} 
             className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-full text-sm focus:outline-none disabled:opacity-60"
           />
           <button 
             onClick={() => {
-              if (inputText.trim() && !isTyping && messages[messages.length - 1]?.type !== 'results' && messages[messages.length - 1]?.type !== 'success') {
-                handleOptionSelect(inputText.trim());
+              if (inputText.trim() && !isTyping && messages[messages.length - 1]?.type !== 'results' && messages[messages.length - 1]?.type !== 'success' && messages[messages.length - 1]?.type !== 'login') {
+                handleUserInput(inputText.trim());
                 setInputText('');
               }
             }}
-            disabled={isTyping || !inputText.trim() || messages[messages.length - 1]?.type === 'results' || messages[messages.length - 1]?.type === 'success'}
+            disabled={isTyping || !inputText.trim() || messages[messages.length - 1]?.type === 'results' || messages[messages.length - 1]?.type === 'success' || messages[messages.length - 1]?.type === 'login'}
             className="absolute right-2 p-2 text-gray-400 hover:text-[#500000] disabled:opacity-50 transition-colors"
           >
             <Send className="w-5 h-5" />

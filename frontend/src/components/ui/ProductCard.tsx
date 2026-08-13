@@ -49,10 +49,7 @@ export default function ProductCard(props: ProductCardProps) {
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user) {
-      window.location.href = `/login?redirectTo=${encodeURIComponent(`/product/${id}`)}`;
-      return;
-    }
+
     toggleWishlist({
       id: Number(id) || 1,
       title,
@@ -69,10 +66,7 @@ export default function ProductCard(props: ProductCardProps) {
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user) {
-      window.location.href = `/login?redirectTo=${encodeURIComponent(`/product/${id}`)}`;
-      return;
-    }
+
     addToCart({
       title,
       price,

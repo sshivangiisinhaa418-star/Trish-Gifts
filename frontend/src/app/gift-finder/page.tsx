@@ -13,7 +13,7 @@ export default async function GiftFinderPage() {
   const products = await getAllProducts();
 
   return (
-    <div className="h-[100dvh] bg-white flex flex-col overflow-hidden">
+    <div className="min-h-[100dvh] md:h-[100dvh] bg-white flex flex-col overflow-x-hidden md:overflow-hidden">
       <Header />
       
       <main className="flex-1 flex flex-col md:flex-row">
