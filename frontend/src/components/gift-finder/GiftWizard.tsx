@@ -14,33 +14,9 @@ type Message = {
   type?: "text" | "options" | "results" | "success" | "login";
 };
 
-// Mock curated results
-const MOCK_RESULTS = [
-  {
-    id: "opt_1",
-    title: "The Signature Collection",
-    description: "Elegant and timeless arrangement.",
-    price: 3500,
-    image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=500&q=80",
-  },
-  {
-    id: "opt_2",
-    title: "The Luxe Edit",
-    description: "Premium selection with premium accents.",
-    price: 4800,
-    image: "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=500&q=80",
-  },
-  {
-    id: "opt_3",
-    title: "The Minimalist Touch",
-    description: "Clean, modern, and beautifully presented.",
-    price: 2800,
-    image: "https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=500&q=80",
-  }
-];
-
-export default function GiftWizard() {
+export default function GiftWizard({ initialProducts = [] }: { initialProducts?: any[] }) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [dynamicResults, setDynamicResults] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState("");
   const [step, setStep] = useState(0);
@@ -216,6 +192,47 @@ export default function GiftWizard() {
         setTimeout(() => {
           setIsTyping(false);
           
+          // Generate dynamic results
+          const userMsgs = [...messages.filter(m => m.sender === "user").map(m => m.text), input];
+          const budgetStr = userMsgs.find(t => t.includes("₹")) || "";
+          
+          let minBudget = 0;
+          let maxBudget = 100000;
+          if (budgetStr.includes("3,000")) maxBudget = 4000;
+          else if (budgetStr.includes("4,000")) { minBudget = 4000; maxBudget = 5000; }
+          else if (budgetStr.includes("5,000")) { minBudget = 5000; maxBudget = 7000; }
+          else if (budgetStr.includes("7,000")) { minBudget = 7000; maxBudget = 10000; }
+
+          let filtered = initialProducts.filter(p => p.price >= minBudget && p.price <= maxBudget);
+          if (filtered.length < 3) {
+            filtered = initialProducts; // fallback if strict budget is too restrictive
+          }
+
+          const allText = userMsgs.join(" ").toLowerCase();
+          const keywords = allText.split(/[\s,]+/).filter(w => w.length > 3);
+          
+          const scored = filtered.map(p => {
+            let score = 0;
+            const pText = `${p.title} ${p.category} ${(p.tags || []).join(" ")}`.toLowerCase();
+            keywords.forEach(kw => {
+              if (pText.includes(kw)) score += 1;
+            });
+            // Slightly favor highly rated or popular items if scores tie
+            score += (p.rating || 0) * 0.1;
+            return { ...p, score };
+          });
+
+          scored.sort((a, b) => b.score - a.score);
+          const top3 = scored.slice(0, 3).map(p => ({
+            id: p.id.toString(),
+            title: p.title,
+            description: p.category || "Curated Selection",
+            price: p.price,
+            image: p.image
+          }));
+          
+          setDynamicResults(top3);
+
           if (!user) {
             setMessages(prev => [...prev, {
               id: `msg_ai_${Date.now()}_login`,
@@ -244,7 +261,7 @@ export default function GiftWizard() {
   };
 
   const handleResultSelect = (resultId: string) => {
-    const selected = MOCK_RESULTS.find(r => r.id === resultId);
+    const selected = dynamicResults.find(r => r.id === resultId);
     if (!selected) return;
 
     setMessages(prev => {
@@ -387,7 +404,7 @@ export default function GiftWizard() {
                   transition={{ delay: 0.3 }}
                   className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 w-full max-w-3xl"
                 >
-                  {MOCK_RESULTS.map((result, i) => (
+                  {dynamicResults.map((result, i) => (
                     <motion.div 
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
