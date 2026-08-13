@@ -292,7 +292,7 @@ export default function GiftWizard() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white rounded-none md:rounded-3xl border-none md:border md:border-gray-100 shadow-none md:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] flex flex-col min-h-screen md:min-h-0 md:h-[700px] overflow-hidden">
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-none md:rounded-3xl border-none md:border md:border-gray-100 shadow-none md:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] flex flex-col min-h-screen md:min-h-0 md:h-full overflow-hidden">
       
       {/* Chat Header */}
       <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between z-10 shrink-0">

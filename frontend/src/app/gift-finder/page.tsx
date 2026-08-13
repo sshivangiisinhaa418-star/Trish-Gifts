@@ -57,7 +57,7 @@ export default async function GiftFinderPage() {
           <div className="hidden md:block absolute inset-4 md:inset-8 border-[1px] border-[#500000]/15 pointer-events-none rounded-xl" />
           <div className="hidden md:block absolute inset-5 md:inset-10 border-[1px] border-[#500000]/5 pointer-events-none rounded-lg" />
           
-          <div className="w-full h-full md:h-auto max-w-3xl relative z-10 md:bg-white/50 md:backdrop-blur-sm md:p-8 rounded-2xl md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] md:border border-white flex flex-col">
+          <div className="w-full h-full md:h-[calc(100%-4rem)] md:max-h-[750px] max-w-3xl relative z-10 md:bg-white/50 md:backdrop-blur-sm md:p-8 rounded-2xl md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] md:border border-white flex flex-col">
             <GiftWizard />
           </div>
         </div>
