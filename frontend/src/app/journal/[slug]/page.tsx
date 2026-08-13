@@ -6,8 +6,9 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { journalArticles } from "@/lib/data/journal";
 
-export default function JournalArticlePage({ params }: { params: { slug: string } }) {
-  const article = journalArticles.find((a) => a.slug === params.slug);
+export default async function JournalArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const article = journalArticles.find((a) => a.slug === resolvedParams.slug);
 
   if (!article) {
     notFound();

@@ -9,8 +9,9 @@ import AddToCartForm from "./AddToCartForm";
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await getProductById(params.id);
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const product = await getProductById(resolvedParams.id);
 
   if (!product) {
     notFound();

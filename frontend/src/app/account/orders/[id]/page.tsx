@@ -9,8 +9,9 @@ const orderHistory = [
   { id: "QUM-771234", date: "May 12, 2026", status: "Delivered", recipient: "David", item: "Personalized Leather Wallet", total: 1499, trackingNumber: "TRK-5512391" },
 ];
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-  const order = orderHistory.find(o => o.id === params.id);
+export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const order = orderHistory.find(o => o.id === resolvedParams.id);
 
   if (!order) {
     notFound();

@@ -4,13 +4,14 @@ import DiscoverClient from "./DiscoverClient";
 import { getAllProducts } from "@/app/actions/store";
 
 interface DiscoverPageProps {
-  searchParams: { intent?: string; category?: string; recipient?: string };
+  searchParams: Promise<{ intent?: string; category?: string; recipient?: string }>;
 }
 
 export const dynamic = 'force-dynamic';
 
 export default async function DiscoverPage({ searchParams }: DiscoverPageProps) {
-  const intentQuery = searchParams.intent?.toUpperCase() || "";
+  const resolvedSearchParams = await searchParams;
+  const intentQuery = resolvedSearchParams.intent?.toUpperCase() || "";
   
   // Fetch real products from the database
   const products = await getAllProducts();
