@@ -16,7 +16,7 @@ export default async function GiftFinderPage() {
     <div className="min-h-[100dvh] md:h-[100dvh] bg-white flex flex-col overflow-x-hidden md:overflow-hidden">
       <Header />
       
-      <main className="flex-1 flex flex-col md:flex-row">
+      <main className="flex-1 min-h-0 flex flex-col md:flex-row">
         {/* Left Side: Visual/Editorial Card (Hidden on mobile) */}
         <div className="hidden md:flex w-full md:w-5/12 p-8 md:p-12 lg:p-20 items-center justify-center h-full">
           <div className="relative w-full h-full max-h-[650px] min-h-[450px] rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 group flex flex-col justify-end p-8 md:p-10">

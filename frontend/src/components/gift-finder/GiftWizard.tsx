@@ -318,7 +318,7 @@ export default function GiftWizard() {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-gradient-to-b from-transparent to-gray-50/30">
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 space-y-8 bg-gradient-to-b from-transparent to-gray-50/30">
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
             <motion.div
