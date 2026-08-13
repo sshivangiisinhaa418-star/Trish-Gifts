@@ -473,7 +473,7 @@ export default function GiftWizard() {
             }}
             placeholder="Type your answer or select an option above..." 
             disabled={isTyping || messages[messages.length - 1]?.type === 'results' || messages[messages.length - 1]?.type === 'success' || messages[messages.length - 1]?.type === 'login'} 
-            className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-full text-sm focus:outline-none disabled:opacity-60"
+            className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-full text-gray-900 placeholder:text-gray-400 text-sm focus:outline-none disabled:opacity-60"
           />
           <button 
             onClick={() => {
