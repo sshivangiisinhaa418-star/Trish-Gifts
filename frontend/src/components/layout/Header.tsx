@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 export default function Header() {
   const { cartItems, openCart } = useCart();
   const { wishlistItems } = useWishlist();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-gray-100 animate-fade-up">
@@ -112,7 +112,13 @@ export default function Header() {
           )}
 
           {/* Professional Sign Up & Log In Buttons for Unauthenticated Visitors */}
-          {user ? (
+          {authLoading ? (
+            // Skeleton placeholder while auth state is being determined — prevents flash of wrong UI
+            <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-gray-200 ml-1">
+              <div className="w-16 h-7 bg-gray-100 rounded-full animate-pulse" />
+              <div className="w-20 h-8 bg-gray-200 rounded-full animate-pulse" />
+            </div>
+          ) : user ? (
             <Link href="/account" title="My Account & Orders" className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group flex items-center ml-1">
               {user?.user_metadata?.avatar_url ? (
                 <img 
