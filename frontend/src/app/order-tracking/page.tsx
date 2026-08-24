@@ -2,7 +2,7 @@
 
 import GlobalNav from "@/components/layout/GlobalNav";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { CheckCircle2, Gift, Truck, Clock, Package, AlertCircle } from "lucide-react";
 
@@ -12,6 +12,49 @@ export default function OrderTrackingPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [orderResult, setOrderResult] = useState<any | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const queryId = params.get("orderId") || params.get("tracking");
+      if (queryId) {
+        setOrderNumber(queryId);
+        autoLookupOrder(queryId);
+      }
+    }
+  }, []);
+
+  const autoLookupOrder = async (cleanQuery: string) => {
+    setIsSearching(true);
+    setErrorMessage(null);
+    setOrderResult(null);
+
+    try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      let query = supabase.from("orders").select("*, order_items(*)");
+      if (cleanQuery.includes("-") || cleanQuery.length > 20) {
+        query = query.eq("id", cleanQuery);
+      } else {
+        query = query.ilike("id", `${cleanQuery}%`);
+      }
+
+      const { data, error } = await query.limit(1).maybeSingle();
+
+      if (error || !data) {
+        setErrorMessage("No order found matching these details. Please check your order ID.");
+      } else {
+        setOrderResult(data);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "An unexpected error occurred while looking up your order.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();

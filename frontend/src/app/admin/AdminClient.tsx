@@ -626,7 +626,7 @@ export default function AdminClient({
 
                             {currentCourier && currentTracking && (
                               <a
-                                href={`https://api.whatsapp.com/send?phone=${encodeURIComponent(order.recipient_phone || order.sender_phone || '')}&text=${encodeURIComponent(`Hello ${order.recipient_name}! 🎁 Your TRISH Luxury Gift order #${order.id.slice(0, 8).toUpperCase()} has been dispatched via ${currentCourier} with tracking AWB: ${currentTracking}. Track live: https://trish-gifts.vercel.app/order-tracking`)}`}
+                                href={`https://api.whatsapp.com/send?phone=${encodeURIComponent(order.recipient_phone || order.sender_phone || '')}&text=${encodeURIComponent(`Hello ${order.recipient_name}! 🎁 Your TRISH Luxury Gift order #${order.id.slice(0, 8).toUpperCase()} has been dispatched via ${currentCourier} with tracking AWB: ${currentTracking}. Track live: https://trish-gifts.vercel.app/order-tracking?orderId=${order.id}`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="px-4 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-1.5"
