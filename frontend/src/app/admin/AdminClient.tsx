@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, X, Upload, ChevronLeft, Gift, CalendarHeart, PartyPopper, CalendarDays, Minus, Package, MessageSquare, Copy, Check, Phone, Mail, MapPin, User, Calendar, Truck, Sparkles, FileText, Navigation, Info } from 'lucide-react'
-import { uploadProduct, updateOrderStatus, updateOrderCourierTracking, updateTicketStatus } from '@/app/actions/admin'
+import { Plus, X, Upload, ChevronLeft, Gift, CalendarHeart, PartyPopper, CalendarDays, Minus, Package, MessageSquare, Copy, Check, Phone, Mail, MapPin, User, Calendar, Truck, Sparkles, FileText, Navigation, Info, Trash2, Tag } from 'lucide-react'
+import { uploadProduct, updateOrderStatus, updateOrderCourierTracking, updateTicketStatus, deleteProduct, createNewCoupon, toggleCouponStatus } from '@/app/actions/admin'
 import Image from 'next/image'
 import { CATEGORIES, OCCASIONS, FESTIVALS, SPECIAL_DAYS } from '@/lib/constants/navigation'
 
@@ -126,6 +126,15 @@ export default function AdminClient({
             <MessageSquare className="w-5 h-5" />
             <span className="text-sm font-medium">Concierge Tickets ({tickets.length})</span>
           </button>
+          <button 
+            onClick={() => handleGroupChange('Coupons' as any)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+              (activeGroup as any) === 'Coupons' ? 'bg-[#500000] text-white shadow-md' : 'text-gray-600 hover:bg-white hover:text-gray-900'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            <span className="text-sm font-medium">Discount Coupons</span>
+          </button>
         </nav>
       </div>
 
@@ -211,6 +220,20 @@ export default function AdminClient({
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                     )}
+
+                    <button 
+                      onClick={async () => {
+                        if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
+                          const res = await deleteProduct(product.id);
+                          if (res.error) alert(res.error);
+                          else window.location.reload();
+                        }
+                      }}
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs border border-stone-200 text-stone-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors shadow-xs"
+                      title="Delete Product"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                   <div className="p-4">
                     <h3 className="font-medium text-gray-900 truncate">{product.name}</h3>
@@ -228,6 +251,116 @@ export default function AdminClient({
                 </div>
               ))}
               
+            </div>
+          </div>
+        )}
+
+        {/* DISCOUNT COUPONS MANAGEMENT */}
+        {(activeGroup as any) === 'Coupons' && (
+          <div className="animate-fade-up space-y-8">
+            <div>
+              <h2 className="text-3xl text-gray-900 font-light" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Discount Coupons & Promo Engine</h2>
+              <p className="text-gray-500 font-light text-sm mt-1">Create and manage active promo codes for customer checkout.</p>
+            </div>
+
+            {/* Create Coupon Form */}
+            <div className="bg-white border border-stone-200 rounded-2xl p-6 md:p-8 shadow-sm">
+              <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#500000]" /> Create New Promo Code
+              </h3>
+
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const res = await createNewCoupon(formData);
+                if (res.error) alert(res.error);
+                else {
+                  alert("Promo Coupon Created Successfully!");
+                  window.location.reload();
+                }
+              }} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Coupon Code *</label>
+                    <input 
+                      type="text" 
+                      name="code" 
+                      required 
+                      placeholder="e.g. FESTIVE20" 
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-bold uppercase text-gray-900 focus:outline-none focus:border-gray-900" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Discount Type *</label>
+                    <select 
+                      name="discount_type" 
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:border-gray-900"
+                    >
+                      <option value="percent">Percentage Discount (%)</option>
+                      <option value="flat">Flat Amount Discount (₹)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Discount Value *</label>
+                    <input 
+                      type="number" 
+                      name="discount_value" 
+                      required 
+                      min="1" 
+                      placeholder="e.g. 10 or 500" 
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold text-gray-900 focus:outline-none focus:border-gray-900" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Min Order Amount (₹)</label>
+                    <input 
+                      type="number" 
+                      name="min_order_amount" 
+                      defaultValue="1000" 
+                      placeholder="e.g. 1000" 
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold text-gray-900 focus:outline-none focus:border-gray-900" 
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button 
+                    type="submit" 
+                    className="px-8 py-3 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-colors shadow-md"
+                  >
+                    Save & Activate Coupon
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Active Seed Coupons List */}
+            <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-gray-900 mb-6 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-[#500000]" /> Pre-Configured Store Promo Codes
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <span className="px-2.5 py-1 bg-amber-100 text-amber-900 rounded font-mono font-bold text-sm">
+                      WELCOME10
+                    </span>
+                    <p className="text-xs text-gray-600 mt-2 font-normal">10% Off on orders above ₹1,000</p>
+                  </div>
+                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                </div>
+
+                <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <span className="px-2.5 py-1 bg-amber-100 text-amber-900 rounded font-mono font-bold text-sm">
+                      TRISH500
+                    </span>
+                    <p className="text-xs text-gray-600 mt-2 font-normal">Flat ₹500 Off on orders above ₹2,500</p>
+                  </div>
+                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                </div>
+              </div>
             </div>
           </div>
         )}

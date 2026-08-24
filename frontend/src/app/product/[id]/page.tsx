@@ -4,8 +4,9 @@ import Link from "next/link";
 import { ArrowLeft, Star, Clock, Heart, Share2, ShieldCheck, Truck } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { getProductById } from "@/app/actions/store";
+import { getProductById, getProductReviews } from "@/app/actions/store";
 import AddToCartForm from "./AddToCartForm";
+import ProductReviews from "./ProductReviews";
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) {
     notFound();
   }
+
+  const initialReviews = await getProductReviews(resolvedParams.id);
 
   // Handle both DB and legacy dummy product formats for rendering
   const title = product.name || product.title;
@@ -169,6 +172,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
         </div>
+
+        {/* Customer Reviews & Star Rating Section */}
+        <ProductReviews productId={resolvedParams.id} initialReviews={initialReviews} />
       </main>
       
       <Footer />

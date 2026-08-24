@@ -210,3 +210,122 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
   return { success: true }
 }
 
+export async function deleteProduct(productId: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return { error: 'Unauthorized' }
+  }
+
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', productId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}
+
+export async function updateProductDetails(productId: string, updates: { price?: number, stock?: number }) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return { error: 'Unauthorized' }
+  }
+
+  const { error } = await supabase
+    .from('products')
+    .update(updates)
+    .eq('id', productId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}
+
+export async function getAllCoupons() {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('coupons')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Failed to fetch coupons:', error)
+    return []
+  }
+
+  return data || []
+}
+
+export async function createNewCoupon(formData: FormData) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return { error: 'Unauthorized' }
+  }
+
+  const code = formData.get('code')?.toString().trim().toUpperCase()
+  const discountType = formData.get('discount_type')?.toString() || 'percent'
+  const discountValue = Number(formData.get('discount_value'))
+  const minOrderAmount = Number(formData.get('min_order_amount')) || 0
+
+  if (!code || isNaN(discountValue) || discountValue <= 0) {
+    return { error: 'Please enter a valid coupon code and discount amount.' }
+  }
+
+  const { error } = await supabase
+    .from('coupons')
+    .insert({
+      code,
+      discount_type: discountType,
+      discount_value: discountValue,
+      min_order_amount: minOrderAmount,
+      is_active: true
+    })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/admin')
+  return { success: true }
+}
+
+export async function toggleCouponStatus(couponId: string, isActive: boolean) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return { error: 'Unauthorized' }
+  }
+
+  const { error } = await supabase
+    .from('coupons')
+    .update({ is_active: isActive })
+    .eq('id', couponId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/admin')
+  return { success: true }
+}
+

@@ -7,6 +7,7 @@ import Script from "next/script";
 import { ArrowLeft, ArrowRight, Check, Lock, ChevronRight, Gift, Calendar, MessageSquare, ShieldCheck, CreditCard } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createRazorpayOrder, verifyAndCreateOrder } from "@/app/actions/payment";
+import { validateCoupon } from "@/app/actions/store";
 
 type CheckoutStep = 1 | 2 | 3 | 4;
 
@@ -47,6 +48,32 @@ export default function CheckoutPage() {
   const [senderEmail, setSenderEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Promo Code State
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  const finalAmount = appliedCoupon ? appliedCoupon.netTotal : cartTotal;
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponInput.trim()) return;
+
+    setIsApplyingCoupon(true);
+    setCouponError("");
+
+    const res = await validateCoupon(couponInput, cartTotal);
+    if (res.error) {
+      setCouponError(res.error);
+      setAppliedCoupon(null);
+    } else {
+      setAppliedCoupon(res);
+      setCouponError("");
+    }
+    setIsApplyingCoupon(false);
+  };
+
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentStep < 4) {
@@ -66,7 +93,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      const orderRes = await createRazorpayOrder(cartTotal);
+      const orderRes = await createRazorpayOrder(finalAmount);
       if (orderRes.error || !orderRes.orderId) {
         alert(orderRes.error || "Failed to initialize payment.");
         setIsProcessing(false);
@@ -109,7 +136,7 @@ export default function CheckoutPage() {
               sender_phone: senderPhone,
               sender_email: senderEmail || email,
               billing_address: billingType === 'same' ? `${recipientAddress}, ${landmark ? `Near ${landmark}, ` : ''}${city}, ${state} - ${pincode}` : (billingAddress || recipientAddress),
-              total_amount: cartTotal
+              total_amount: finalAmount
             },
             cartItems: cartItems
           });
@@ -447,22 +474,63 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <div className="border-t border-stone-100 pt-6 space-y-3">
-                <div className="flex justify-between text-sm text-gray-500 font-light">
+              {/* Promo Code / Coupon Section */}
+              <div className="border-t border-stone-200 pt-5 mt-4">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Have a Promo Code?</p>
+                <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={couponInput} 
+                    onChange={(e) => setCouponInput(e.target.value)} 
+                    placeholder="e.g. WELCOME10 / TRISH500" 
+                    className="flex-1 px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-xs font-semibold uppercase text-black focus:outline-none focus:border-gray-900" 
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={isApplyingCoupon || !couponInput.trim()} 
+                    className="px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-[#500000] transition-colors disabled:opacity-50"
+                  >
+                    {isApplyingCoupon ? '...' : 'Apply'}
+                  </button>
+                </form>
+
+                {couponError && (
+                  <p className="text-xs text-red-600 mt-2 font-medium">{couponError}</p>
+                )}
+
+                {appliedCoupon && (
+                  <div className="mt-2.5 p-2.5 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between text-xs text-green-800">
+                    <span className="font-semibold">🎟️ Coupon {appliedCoupon.code} Applied</span>
+                    <span className="font-bold">-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-stone-200 pt-4 mt-4 space-y-2.5 text-sm">
+                <div className="flex justify-between text-gray-600 font-normal">
                   <span>Subtotal</span>
                   <span>₹{cartTotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500 font-light">
-                  <span>Shipping</span>
-                  <span>Calculated at next step</span>
+
+                {appliedCoupon && (
+                  <div className="flex justify-between text-green-700 font-medium">
+                    <span>Discount ({appliedCoupon.code})</span>
+                    <span>-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-gray-600 font-normal">
+                  <span>Shipping & Delivery</span>
+                  <span className="text-green-700 font-semibold">Free</span>
                 </div>
-                {/* Total */}
-                <div className="flex justify-between items-end pt-4 mt-4 border-t border-stone-200">
-                  <span className="text-base text-gray-900 font-medium">Total</span>
+
+                {/* Net Total */}
+                <div className="flex justify-between items-end pt-4 mt-2 border-t border-stone-200">
+                  <span className="text-base text-gray-900 font-semibold">Payable Total</span>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs text-gray-500 uppercase">INR</span>
-                    <span className="text-2xl text-gray-900" style={{ fontFamily: 'var(--font-cormorant), serif' }}>
-                      ₹{cartTotal.toLocaleString()}
+                    <span className="text-xs text-gray-500 uppercase font-mono">INR</span>
+                    <span className="text-3xl font-bold text-[#500000]">
+                      ₹{finalAmount.toLocaleString()}
                     </span>
                   </div>
                 </div>
