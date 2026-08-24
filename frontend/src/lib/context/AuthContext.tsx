@@ -18,8 +18,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
 
     // First, quickly hydrate from the cached session to avoid flicker
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then((res: any) => {
+      setUser(res?.data?.session?.user ?? null);
       setLoading(false);
     });
 

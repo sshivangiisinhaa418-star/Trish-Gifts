@@ -8,14 +8,25 @@ import { useCart } from "@/lib/context/CartContext";
 
 export default function OrderSuccessPage() {
   const [copied, setCopied] = useState(false);
+  const [orderId, setOrderId] = useState<string>("");
   const { clearCart } = useCart();
 
   useEffect(() => {
     clearCart();
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("orderId");
+      if (id) {
+        setOrderId(id);
+      }
+    }
   }, [clearCart]);
 
+  const displayOrderNumber = orderId ? orderId.slice(0, 8).toUpperCase() : "CONFIRMED";
+  const revealUrl = typeof window !== "undefined" ? `${window.location.origin}/reveal` : "https://trish.com/reveal";
+
   const handleCopy = () => {
-    navigator.clipboard.writeText("https://trish.com/reveal/xyz123");
+    navigator.clipboard.writeText(revealUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
@@ -52,7 +63,7 @@ export default function OrderSuccessPage() {
           transition={{ delay: 0.2 }}
           className="text-gray-500 font-light text-center max-w-md mb-8"
         >
-          Order #QUM-892410 has been confirmed. We've emailed you the receipt and tracking details.
+          Order #{displayOrderNumber} has been placed. We've emailed you the confirmation and tracking details.
         </motion.p>
 
         {/* Animated Tracking Timeline */}

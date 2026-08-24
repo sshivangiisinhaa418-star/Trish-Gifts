@@ -40,7 +40,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const addToWishlist = (product: Product) => {
     setWishlistItems((prev) => {
-      if (!prev.find((item) => item.id === product.id)) {
+      if (!prev.find((item) => String(item.id) === String(product.id))) {
         return [...prev, product];
       }
       return prev;
@@ -48,11 +48,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromWishlist = (productId: string | number) => {
-    setWishlistItems((prev) => prev.filter((item) => item.id !== productId));
+    setWishlistItems((prev) => prev.filter((item) => String(item.id) !== String(productId)));
   };
 
   const isInWishlist = (productId: string | number) => {
-    return wishlistItems.some((item) => item.id === productId);
+    return wishlistItems.some((item) => String(item.id) === String(productId));
   };
 
   const toggleWishlist = (product: Product) => {

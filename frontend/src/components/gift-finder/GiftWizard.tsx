@@ -64,6 +64,8 @@ export default function GiftWizard({ initialProducts = [] }: { initialProducts?:
   };
 
   const handleUserInput = (input: string) => {
+    if (isTyping || step >= 3) return;
+
     // Append user bubble
     setMessages(prev => {
       const newMsgs = [...prev];
@@ -245,8 +247,9 @@ export default function GiftWizard({ initialProducts = [] }: { initialProducts?:
                   {msg.options.map((opt, i) => (
                     <button
                       key={i}
+                      disabled={isTyping || step >= 3}
                       onClick={() => handleUserInput(opt)}
-                      className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-full text-sm hover:border-[#500000] hover:text-[#500000] transition-all active:scale-95 shadow-sm"
+                      className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-full text-sm hover:border-[#500000] hover:text-[#500000] transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:text-gray-700"
                     >
                       {opt}
                     </button>

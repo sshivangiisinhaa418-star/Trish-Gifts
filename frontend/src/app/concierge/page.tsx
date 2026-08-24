@@ -2,6 +2,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import OurServices from "@/components/home/OurServices";
 import FAQ from "@/components/home/FAQ";
+import ConciergeInquiryForm from "./ConciergeInquiryForm";
 
 export const metadata = {
   title: "Our Services | TRISH Luxury Gifting",
@@ -15,6 +16,7 @@ export default function ConciergePage() {
       
       <main className="flex-1">
         <OurServices />
+        <ConciergeInquiryForm />
         <FAQ />
       </main>
 

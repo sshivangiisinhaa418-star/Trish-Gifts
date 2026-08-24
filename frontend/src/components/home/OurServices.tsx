@@ -23,7 +23,7 @@ export default function OurServices() {
       title: "Bespoke Experience",
       description: "For those who want a completely personalised gifting journey, our dedicated gifting assistants work with you to create a one-of-a-kind gift basket. From selecting the right products to perfecting the final presentation, every detail is curated around your vision.",
       icon: <Crown className="w-8 h-8 text-[#500000]" />,
-      link: "/concierge",
+      link: "/concierge#inquire",
       linkText: "Premium Customisation"
     }
   ];

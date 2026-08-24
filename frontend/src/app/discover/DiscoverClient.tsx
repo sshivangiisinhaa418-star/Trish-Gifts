@@ -8,12 +8,13 @@ import { CATEGORIES, OCCASIONS, FESTIVALS, SPECIAL_DAYS } from "@/lib/constants/
 
 interface DiscoverClientProps {
   initialIntent: string;
+  searchQuery?: string;
   initialProducts: any[];
 }
 
 const SORT_OPTIONS = ['Recommended', 'Price: Low to High', 'Price: High to Low', 'Top Rated'];
 
-export default function DiscoverClient({ initialIntent, initialProducts }: DiscoverClientProps) {
+export default function DiscoverClient({ initialIntent, searchQuery = "", initialProducts }: DiscoverClientProps) {
   // Filters State
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sameDayOnly, setSameDayOnly] = useState(false);
@@ -52,6 +53,18 @@ export default function DiscoverClient({ initialIntent, initialProducts }: Disco
   // Memoized Filtered & Sorted Products
   const displayProducts = useMemo(() => {
     let result = [...initialProducts];
+
+    // 0. Filter by Search Query
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(p => {
+        const title = (p.name || p.title || '').toLowerCase();
+        const desc = (p.description || '').toLowerCase();
+        const intent = (p.intent || p.category || '').toLowerCase();
+        const tagMatch = Array.isArray(p.tags) && p.tags.some((t: string) => t.toLowerCase().includes(q));
+        return title.includes(q) || desc.includes(q) || intent.includes(q) || tagMatch;
+      });
+    }
 
     // 1. Filter by Intent (from URL or selected)
     if (activeIntents.length > 0) {

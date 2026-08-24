@@ -1,0 +1,176 @@
+'use server'
+
+import Razorpay from 'razorpay'
+import crypto from 'crypto'
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+export async function createRazorpayOrder(amountInINR: number) {
+  try {
+    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TTXMeDPbyMc0pU'
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || 'JjYw3vyMmPlpTX7LlkxPwgwn'
+
+    if (!keyId || !keySecret) {
+      return { error: 'Razorpay API credentials not configured.' }
+    }
+
+    const razorpay = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret
+    })
+
+    const options = {
+      amount: Math.max(100, Math.round(amountInINR * 100)), // Amount in paise (min 100 paise = ₹1)
+      currency: 'INR',
+      receipt: `rcpt_${Date.now().toString().slice(-8)}`
+    }
+
+    const order = await razorpay.orders.create(options)
+    return { 
+      success: true, 
+      orderId: order.id, 
+      amount: order.amount, 
+      currency: order.currency 
+    }
+  } catch (error: any) {
+    console.error('Error creating Razorpay order:', error)
+    return { error: error?.message || 'Failed to initialize payment.' }
+  }
+}
+
+export async function verifyAndCreateOrder(data: {
+  razorpay_order_id: string
+  razorpay_payment_id: string
+  razorpay_signature: string
+  shippingDetails: {
+    recipient_name: string
+    recipient_email: string
+    recipient_phone?: string
+    recipient_alternate_phone?: string
+    recipient_address: string
+    landmark?: string
+    city?: string
+    state?: string
+    pincode?: string
+    delivery_instructions?: string
+    sender_name?: string
+    sender_phone?: string
+    sender_email?: string
+    billing_address?: string
+    total_amount: number
+  }
+  cartItems: any[]
+}) {
+  try {
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || 'JjYw3vyMmPlpTX7LlkxPwgwn'
+
+    if (!keySecret) {
+      return { error: 'Payment secret not configured.' }
+    }
+
+    // 1. Cryptographic HMAC-SHA256 Signature Verification
+    const expectedSignature = crypto
+      .createHmac('sha256', keySecret)
+      .update(`${data.razorpay_order_id}|${data.razorpay_payment_id}`)
+      .digest('hex')
+
+    if (expectedSignature !== data.razorpay_signature) {
+      return { error: 'Payment verification failed: Invalid transaction signature.' }
+    }
+
+    // 2. Insert verified order into Supabase
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { error: 'User session expired. Please log in.' }
+    }
+
+    const { shippingDetails, cartItems } = data
+
+    const rawAddress = shippingDetails.recipient_address || ''
+    const landmark = shippingDetails.landmark || ''
+    const city = shippingDetails.city || ''
+    const state = shippingDetails.state || ''
+    const pincode = shippingDetails.pincode || ''
+    const fullRecipientAddress = city && pincode && !rawAddress.includes(pincode)
+      ? `${rawAddress}${landmark ? `, Near ${landmark}` : ''}, ${city}, ${state ? `${state} ` : ''}- ${pincode}`
+      : rawAddress
+
+    const orderData: any = {
+      user_id: user.id,
+      recipient_name: shippingDetails.recipient_name,
+      recipient_email: shippingDetails.recipient_email,
+      recipient_phone: shippingDetails.recipient_phone || null,
+      recipient_alternate_phone: shippingDetails.recipient_alternate_phone || null,
+      recipient_address: fullRecipientAddress,
+      landmark: landmark || null,
+      city: city || null,
+      state: state || null,
+      pincode: pincode || null,
+      delivery_instructions: shippingDetails.delivery_instructions || null,
+      sender_name: shippingDetails.sender_name || null,
+      sender_phone: shippingDetails.sender_phone || null,
+      sender_email: shippingDetails.sender_email || null,
+      billing_address: shippingDetails.billing_address || fullRecipientAddress,
+      total_amount: Number(shippingDetails.total_amount),
+      status: 'Processing'
+    }
+
+    let { data: insertedOrder, error: orderError } = await supabase
+      .from('orders')
+      .insert(orderData)
+      .select('id')
+      .single()
+
+    if (orderError) {
+      // Fallback for legacy columns
+      const legacyOrderData = {
+        user_id: user.id,
+        recipient_name: orderData.recipient_name,
+        recipient_email: orderData.recipient_email,
+        recipient_address: `${orderData.recipient_address} | Phone: ${orderData.recipient_phone || 'N/A'} (Alt: ${orderData.recipient_alternate_phone || 'N/A'}) | Sender: ${orderData.sender_name || 'N/A'} (${orderData.sender_phone || 'N/A'}) | Instructions: ${orderData.delivery_instructions || 'None'}`,
+        total_amount: orderData.total_amount,
+        status: 'Processing'
+      }
+      const retry = await supabase.from('orders').insert(legacyOrderData).select('id').single()
+      if (retry.error) {
+        return { error: retry.error.message }
+      }
+      insertedOrder = retry.data
+    }
+
+    if (insertedOrder && Array.isArray(cartItems) && cartItems.length > 0) {
+      const orderItemsData = cartItems.map((item: any) => ({
+        order_id: insertedOrder.id,
+        product_id: (item.productId || item.id) ? (item.productId || item.id).toString() : null,
+        product_name: item.title || 'Luxury Gift Item',
+        image: item.image || null,
+        price: item.price || 0,
+        quantity: item.quantity || 1,
+        gift_wrap: Boolean(item.giftingOptions?.giftWrap),
+        greeting_card: Boolean(item.giftingOptions?.greetingCard),
+        gift_message: item.giftingOptions?.giftMessage || null,
+        delivery_date: item.giftingOptions?.deliveryDate || null
+      }))
+
+      const itemsRes = await supabase.from('order_items').insert(orderItemsData)
+      if (itemsRes.error) {
+        const fallbackItems = orderItemsData.map(({ image, greeting_card, ...rest }) => rest)
+        await supabase.from('order_items').insert(fallbackItems)
+      }
+    }
+
+    revalidatePath('/account')
+    revalidatePath('/admin')
+
+    return { 
+      success: true, 
+      orderId: insertedOrder?.id 
+    }
+
+  } catch (error: any) {
+    console.error('Error verifying payment and saving order:', error)
+    return { error: error?.message || 'Failed to complete order after payment.' }
+  }
+}

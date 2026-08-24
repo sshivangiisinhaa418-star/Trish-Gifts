@@ -1,45 +1,144 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useCart } from "@/lib/context/CartContext";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, Lock, ChevronRight, Gift, Calendar, MessageSquare } from "lucide-react";
+import Script from "next/script";
+import { ArrowLeft, ArrowRight, Check, Lock, ChevronRight, Gift, Calendar, MessageSquare, ShieldCheck, CreditCard } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { submitCheckout } from "@/app/actions/forms";
+import { createRazorpayOrder, verifyAndCreateOrder } from "@/app/actions/payment";
 
 type CheckoutStep = 1 | 2 | 3 | 4;
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function CheckoutPage() {
-  const { cartItems, cartTotal } = useCart();
+  const { cartItems, cartTotal, clearCart } = useCart();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>(1);
   const router = useRouter();
 
-  // Form States (Mocked for UI)
+  // Form States (Complete Delivery & Courier Logistics)
   const [email, setEmail] = useState("");
   const [recipientName, setRecipientName] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [recipientAlternatePhone, setRecipientAlternatePhone] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
+  const [billingType, setBillingType] = useState<"same" | "different">("same");
+  const [billingAddress, setBillingAddress] = useState("");
   const [senderName, setSenderName] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [senderPhone, setSenderPhone] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentStep < 4) {
       setCurrentStep((prev) => (prev + 1) as CheckoutStep);
     } else {
-      // Final submit
-      startTransition(async () => {
-        const formData = new FormData();
-        formData.append('recipient_name', recipientName);
-        formData.append('recipient_email', email);
-        formData.append('recipient_address', recipientAddress);
-        formData.append('total_amount', cartTotal.toString());
-        formData.append('cart_items', JSON.stringify(cartItems));
-        
-        const result = await submitCheckout(formData);
-        if (result?.error) {
-          alert(result.error);
+      handleRazorpayPayment();
+    }
+  };
+
+  const handleRazorpayPayment = async () => {
+    setIsProcessing(true);
+    try {
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        alert("Failed to load Razorpay payment gateway. Please check your internet connection.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const orderRes = await createRazorpayOrder(cartTotal);
+      if (orderRes.error || !orderRes.orderId) {
+        alert(orderRes.error || "Failed to initialize payment.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TTXMeDPbyMc0pU",
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        name: "TRISH Luxury Gifts",
+        description: "Artisanal Luxury Gift Order",
+        order_id: orderRes.orderId,
+        prefill: {
+          name: senderName || recipientName,
+          email: senderEmail || email,
+          contact: senderPhone || recipientPhone
+        },
+        theme: {
+          color: "#500000"
+        },
+        handler: async function (response: any) {
+          // Cryptographic server-side verification and order placement
+          const verifyRes = await verifyAndCreateOrder({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            shippingDetails: {
+              recipient_name: recipientName,
+              recipient_email: email,
+              recipient_phone: recipientPhone,
+              recipient_alternate_phone: recipientAlternatePhone,
+              recipient_address: recipientAddress,
+              landmark: landmark,
+              city: city,
+              state: state,
+              pincode: pincode,
+              delivery_instructions: deliveryInstructions,
+              sender_name: senderName,
+              sender_phone: senderPhone,
+              sender_email: senderEmail || email,
+              billing_address: billingType === 'same' ? `${recipientAddress}, ${landmark ? `Near ${landmark}, ` : ''}${city}, ${state} - ${pincode}` : (billingAddress || recipientAddress),
+              total_amount: cartTotal
+            },
+            cartItems: cartItems
+          });
+
+          if (verifyRes?.success && verifyRes.orderId) {
+            clearCart();
+            router.push(`/checkout/success?orderId=${encodeURIComponent(verifyRes.orderId)}`);
+          } else {
+            alert(verifyRes?.error || "Payment verification failed.");
+            setIsProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessing(false);
+          }
         }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (resp: any) {
+        alert(`Payment Failed: ${resp.error?.description || resp.error?.reason || 'Transaction could not be completed'}`);
+        setIsProcessing(false);
       });
+      rzp.open();
+    } catch (err: any) {
+      console.error("Payment initiation error:", err);
+      alert("An unexpected error occurred during payment initialization.");
+      setIsProcessing(false);
     }
   };
 
@@ -57,6 +156,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#faf9f6]">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       {/* Checkout Header (Minimalist) */}
       <header className="w-full bg-white border-b border-stone-200 h-20 flex items-center justify-between px-4 md:px-8 lg:px-12">
         <Link href="/" className="flex items-center group">
@@ -94,18 +194,18 @@ export default function CheckoutPage() {
               <h2 className="text-3xl text-gray-900 mb-6" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Contact Information</h2>
               <form onSubmit={handleNextStep} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Email Address</label>
+                  <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Order Receipt & Tracking Email *</label>
                   <input 
                     type="email" 
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all font-light"
-                    placeholder="Where should we send your receipt?"
+                    className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm"
+                    placeholder="Where should we send your receipt & tracking?"
                   />
                 </div>
-                <button type="submit" className="w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all">
-                  Continue to Delivery
+                <button type="submit" className="w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all shadow-md">
+                  Continue to Delivery &rarr;
                 </button>
               </form>
             </div>
@@ -114,38 +214,60 @@ export default function CheckoutPage() {
             <div className={`transition-all duration-500 ${currentStep === 2 ? 'opacity-100 block' : 'hidden'}`}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-3xl text-gray-900" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Who is receiving this gift?</h2>
-                <button onClick={() => setCurrentStep(1)} className="text-xs font-medium text-gray-500 underline hover:text-gray-900 transition-colors">Edit Contact</button>
+                <button type="button" onClick={() => setCurrentStep(1)} className="text-xs font-semibold text-gray-600 underline hover:text-gray-900 transition-colors">Edit Contact</button>
               </div>
-              <p className="text-sm text-gray-500 font-light mb-6">We'll make sure it's wrapped beautifully and delivered safely to them.</p>
+              <p className="text-sm text-gray-600 font-normal mb-6">Please provide accurate address and phone details so the courier partner can deliver smoothly.</p>
               
               <form onSubmit={handleNextStep} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Recipient's Full Name</label>
-                    <input type="text" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Recipient's Full Name *</label>
+                    <input type="text" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Full Name" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Recipient's Phone</label>
-                    <input type="tel" required className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Primary Phone Number *</label>
+                    <input type="tel" required value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} placeholder="+91 98765 43210 (For courier delivery)" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Alternate Phone / WhatsApp (Optional)</label>
+                    <input type="tel" value={recipientAlternatePhone} onChange={(e) => setRecipientAlternatePhone(e.target.value)} placeholder="+91 98765 00000" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Nearby Landmark (Optional)</label>
+                    <input type="text" value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="e.g. Near Apollo Pharmacy / Opp. Central Mall" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Delivery Address</label>
-                  <input type="text" required value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} placeholder="Street address, apartment, suite, etc." className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                  <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Complete Street Address (Flat / House No, Building, Street) *</label>
+                  <input type="text" required value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} placeholder="Flat 402, Royal Palms, 5th Main Road" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                 </div>
-                <div className="grid grid-cols-2 gap-6">
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">City</label>
-                    <input type="text" required className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">City *</label>
+                    <input type="text" required value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Mumbai" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">PIN Code</label>
-                    <input type="text" required className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">State *</label>
+                    <input type="text" required value={state} onChange={(e) => setState(e.target.value)} placeholder="e.g. Maharashtra" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">PIN Code *</label>
+                    <input type="text" required value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="e.g. 400001" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Special Delivery Instructions (Optional)</label>
+                  <input type="text" value={deliveryInstructions} onChange={(e) => setDeliveryInstructions(e.target.value)} placeholder="e.g. Please do not call recipient before 11 AM / Surprise delivery" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                 </div>
                 
-                <button type="submit" className="w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all mt-4">
-                  Continue to Sender Details
+                <button type="submit" className="w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all mt-4 shadow-md">
+                  Continue to Sender Details &rarr;
                 </button>
               </form>
             </div>
@@ -154,36 +276,66 @@ export default function CheckoutPage() {
             <div className={`transition-all duration-500 ${currentStep === 3 ? 'opacity-100 block' : 'hidden'}`}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-3xl text-gray-900" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Who is sending this?</h2>
-                <button onClick={() => setCurrentStep(2)} className="text-xs font-medium text-gray-500 underline hover:text-gray-900 transition-colors">Edit Recipient</button>
+                <button type="button" onClick={() => setCurrentStep(2)} className="text-xs font-semibold text-gray-600 underline hover:text-gray-900 transition-colors">Edit Recipient</button>
               </div>
-              <p className="text-sm text-gray-500 font-light mb-6">We need this for billing and in case we need to contact you about the order.</p>
+              <p className="text-sm text-gray-600 font-normal mb-6">We need your sender details for billing and in case the courier needs to contact you.</p>
               
               <form onSubmit={handleNextStep} className="space-y-6">
                 <div className="space-y-4">
                   {/* Option to use same address */}
-                  <label className="flex items-center gap-3 cursor-pointer p-4 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors">
-                    <input type="radio" name="billing" defaultChecked className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900" />
-                    <span className="text-sm text-gray-700">Same as delivery address</span>
+                  <label className="flex items-center gap-3 cursor-pointer p-4 border border-stone-300 bg-white rounded-xl hover:bg-stone-50 transition-colors shadow-sm">
+                    <input 
+                      type="radio" 
+                      name="billing" 
+                      checked={billingType === 'same'} 
+                      onChange={() => setBillingType('same')}
+                      className="w-4 h-4 text-gray-900 border-gray-400 focus:ring-gray-900" 
+                    />
+                    <span className="text-sm font-semibold text-gray-900">Same as delivery address</span>
                   </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-4 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors">
-                    <input type="radio" name="billing" className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900" />
-                    <span className="text-sm text-gray-700">Use a different billing address</span>
+                  <label className="flex items-center gap-3 cursor-pointer p-4 border border-stone-300 bg-white rounded-xl hover:bg-stone-50 transition-colors shadow-sm">
+                    <input 
+                      type="radio" 
+                      name="billing" 
+                      checked={billingType === 'different'} 
+                      onChange={() => setBillingType('different')}
+                      className="w-4 h-4 text-gray-900 border-gray-400 focus:ring-gray-900" 
+                    />
+                    <span className="text-sm font-semibold text-gray-900">Use a different billing address</span>
                   </label>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                {billingType === 'different' && (
+                  <div className="space-y-2 animate-fade-up">
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Billing Address *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={billingAddress} 
+                      onChange={(e) => setBillingAddress(e.target.value)} 
+                      placeholder="Billing street address, city, state, pin code" 
+                      className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" 
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sender's Full Name</label>
-                    <input type="text" required value={senderName} onChange={(e) => setSenderName(e.target.value)} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Sender's Full Name *</label>
+                    <input type="text" required value={senderName} onChange={(e) => setSenderName(e.target.value)} placeholder="Your Full Name" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sender's Phone</label>
-                    <input type="tel" required className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Sender's Phone *</label>
+                    <input type="tel" required value={senderPhone} onChange={(e) => setSenderPhone(e.target.value)} placeholder="+91 98765 43210" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest block">Sender's Email (Optional)</label>
+                    <input type="email" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)} placeholder="sender@example.com" className="w-full px-4 py-3.5 bg-white border border-stone-300 rounded-xl text-base text-black font-semibold placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all shadow-sm" />
                   </div>
                 </div>
 
-                <button type="submit" className="w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all mt-4">
-                  Continue to Payment
+                <button type="submit" className="w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-all mt-4 shadow-md">
+                  Continue to Payment Options &rarr;
                 </button>
               </form>
             </div>
@@ -191,19 +343,63 @@ export default function CheckoutPage() {
             {/* Step 4: Payment */}
             <div className={`transition-all duration-500 ${currentStep === 4 ? 'opacity-100 block' : 'hidden'}`}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl text-gray-900" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Payment</h2>
-                <button onClick={() => setCurrentStep(3)} className="text-xs font-medium text-gray-500 underline hover:text-gray-900 transition-colors">Edit Sender</button>
+                <h2 className="text-3xl text-gray-900" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Payment & Confirmation</h2>
+                <button type="button" onClick={() => setCurrentStep(3)} className="text-xs font-semibold text-gray-600 underline hover:text-gray-900 transition-colors">Edit Sender</button>
               </div>
               
-              <div className="bg-white border border-stone-200 rounded-xl p-6 mb-8 text-center space-y-4 shadow-sm">
-                <Lock className="w-8 h-8 text-gray-300 mx-auto" />
-                <h3 className="font-medium text-gray-900">Secure Payment Gateway</h3>
-                <p className="text-sm text-gray-500 font-light">This is a mockup. Clicking below will simulate a successful payment and complete your luxury gifting experience.</p>
+              <div className="bg-white border border-stone-300 rounded-2xl p-6 md:p-8 mb-8 space-y-6 shadow-sm">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#500000]">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-base">Razorpay Live Verified Gateway</h3>
+                      <p className="text-xs text-gray-500 font-normal">Instant Authorization & 256-bit SSL Security</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                    Active Test Mode
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                  <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-gray-900 shadow-2xs">
+                    📱 UPI / QR (GPay, PhonePe)
+                  </div>
+                  <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-gray-900 shadow-2xs">
+                    💳 Cards (Visa, Mastercard)
+                  </div>
+                  <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-gray-900 shadow-2xs">
+                    🏦 Net Banking (All Banks)
+                  </div>
+                  <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-gray-900 shadow-2xs">
+                    👛 Wallets (Paytm, Mobikwik)
+                  </div>
+                </div>
+
+                <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-[#500000] shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">
+                    Clicking below will launch the official Razorpay payment window. Choose UPI, QR, Card, or Net Banking to complete payment.
+                  </span>
+                </div>
               </div>
 
-              <form onSubmit={handleNextStep}>
-                <button type="submit" disabled={isPending} className="w-full py-4 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed">
-                  {isPending ? 'Processing...' : `Pay ₹${cartTotal.toLocaleString()} & Send Gift`} {!isPending && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
+              <form onSubmit={(e) => { e.preventDefault(); handleRazorpayPayment(); }}>
+                <button 
+                  type="submit" 
+                  disabled={isProcessing} 
+                  className="w-full py-4 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? (
+                    <span>Opening Payment Gateway...</span>
+                  ) : (
+                    <>
+                      <span>Pay ₹{cartTotal.toLocaleString()} via Razorpay</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
                 </button>
               </form>
             </div>

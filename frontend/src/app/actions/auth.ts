@@ -20,7 +20,7 @@ export async function login(formData: FormData) {
   }
 
   const rawRedirectTo = formData.get('redirectTo') as string | null;
-  const redirectTo = (rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')) ? rawRedirectTo : '/';
+  const redirectTo = (rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')) ? rawRedirectTo : '/discover';
   revalidatePath('/', 'layout');
   redirect(redirectTo);
 }

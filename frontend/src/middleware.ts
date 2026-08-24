@@ -69,12 +69,11 @@ export async function middleware(request: NextRequest) {
     console.error('Middleware Supabase error:', err);
   }
 
-  // Protected routes logic
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
+  // Protected routes logic (Account, Checkout, Reveal)
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup');
   
-  // Protect account, checkout, reveal, product (if needed)
+  // Only protect account, checkout, and reveal routes
   const isGiftOrProtectedRoute = 
-    request.nextUrl.pathname.startsWith('/product') ||
     request.nextUrl.pathname.startsWith('/checkout') ||
     request.nextUrl.pathname.startsWith('/account') ||
     request.nextUrl.pathname.startsWith('/reveal');
@@ -93,13 +92,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/discover', request.url));
   }
 
-  // Redirect authenticated users trying to visit the public home page to /discover
-  const isHomePage = request.nextUrl.pathname === '/';
-  if (isHomePage && user) {
-    return NextResponse.redirect(new URL('/discover', request.url));
-  }
-
-  return supabaseResponse
+  return supabaseResponse;
 }
 
 export const config = {

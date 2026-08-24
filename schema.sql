@@ -34,13 +34,26 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 
--- Orders Table
+-- Orders Table (Full Courier & Dispatch Data)
 create table if not exists public.orders (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references public.profiles(id) on delete set null,
   recipient_name text not null,
   recipient_email text not null,
+  recipient_phone text,
+  recipient_alternate_phone text,
   recipient_address text not null,
+  landmark text,
+  city text,
+  state text,
+  pincode text,
+  delivery_instructions text,
+  sender_name text,
+  sender_phone text,
+  sender_email text,
+  billing_address text,
+  courier_name text,
+  tracking_number text,
   status text default 'Processing' not null,
   total_amount numeric not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -107,9 +120,11 @@ create table if not exists public.order_items (
   order_id uuid references public.orders(id) on delete cascade not null,
   product_id text,
   product_name text not null,
+  image text,
   price numeric not null,
   quantity integer default 1 not null,
   gift_wrap boolean default false,
+  greeting_card boolean default false,
   gift_message text,
   delivery_date text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null

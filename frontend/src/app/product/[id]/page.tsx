@@ -155,7 +155,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             )}
             
             {/* Client Component for Interactive Add to Cart & Gifting Options */}
-            <AddToCartForm product={{ title, price, image }} />
+            <AddToCartForm product={{ id: String(product.id || resolvedParams.id), title, price, image }} />
             
             <div className="mt-12 border-t border-gray-100 pt-8">
               <h3 className="text-sm font-bold uppercase tracking-widest text-gray-900 mb-4">Great For</h3>

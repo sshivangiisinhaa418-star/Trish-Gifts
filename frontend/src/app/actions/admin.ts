@@ -143,6 +143,31 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   return { success: true }
 }
 
+export async function updateOrderCourierTracking(orderId: string, courierName: string, trackingNumber: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+    return { error: 'Unauthorized' }
+  }
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ 
+      courier_name: courierName, 
+      tracking_number: trackingNumber,
+      status: 'Shipped' 
+    })
+    .eq('id', orderId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/admin')
+  return { success: true }
+}
+
 export async function getAllSupportTickets() {
   const supabase = await createClient()
   

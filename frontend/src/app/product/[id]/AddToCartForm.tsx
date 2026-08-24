@@ -18,6 +18,7 @@ export default function AddToCartForm({ product }: { product: any }) {
     setIsAdding(true);
     
     addToCart({
+      productId: product.id ? String(product.id) : undefined,
       title: product.title,
       price: product.price,
       image: product.image,
@@ -35,60 +36,65 @@ export default function AddToCartForm({ product }: { product: any }) {
 
   return (
     <div className="space-y-6">
-      {/* Gifting Options */}
-      <div className="bg-stone-50 rounded-2xl p-6 border border-stone-100">
-        <div className="flex items-center gap-2 mb-4 text-[#500000]">
+      {/* Gifting Personalization Options */}
+      <div className="bg-stone-50 rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 mb-2 text-[#500000]">
           <Gift className="w-5 h-5" />
-          <h3 className="font-bold uppercase tracking-widest text-xs">Gifting Options</h3>
+          <h3 className="font-bold uppercase tracking-widest text-xs">Gift Packaging & Personalization</h3>
         </div>
         
-        <div className="space-y-4">
-          <label className="flex items-center justify-between cursor-pointer group">
-            <div className="flex items-center gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className={`flex items-center justify-between cursor-pointer p-3.5 rounded-xl border transition-all ${giftWrap ? 'bg-amber-50/80 border-[#500000] text-[#500000]' : 'bg-white border-stone-200 text-gray-800 hover:border-stone-400'}`}>
+            <div className="flex items-center gap-2.5">
               <input 
                 type="checkbox" 
                 checked={giftWrap}
                 onChange={(e) => setGiftWrap(e.target.checked)}
                 className="w-4 h-4 text-[#500000] rounded focus:ring-[#500000]" 
               />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">Premium Gift Wrap</span>
+              <span className="text-xs font-semibold">🎁 Premium Gift Wrap</span>
             </div>
-            <span className="text-sm text-gray-500 font-light">+₹250</span>
+            <span className="text-xs font-bold">+₹250</span>
           </label>
           
-          <label className="flex items-center justify-between cursor-pointer group">
-            <div className="flex items-center gap-3">
+          <label className={`flex items-center justify-between cursor-pointer p-3.5 rounded-xl border transition-all ${greetingCard ? 'bg-amber-50/80 border-[#500000] text-[#500000]' : 'bg-white border-stone-200 text-gray-800 hover:border-stone-400'}`}>
+            <div className="flex items-center gap-2.5">
               <input 
                 type="checkbox" 
                 checked={greetingCard}
                 onChange={(e) => setGreetingCard(e.target.checked)}
                 className="w-4 h-4 text-[#500000] rounded focus:ring-[#500000]" 
               />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">Handwritten Card</span>
+              <span className="text-xs font-semibold">✍️ Calligraphy Card</span>
             </div>
-            <span className="text-sm text-gray-500 font-light">+₹150</span>
+            <span className="text-xs font-bold">+₹150</span>
           </label>
+        </div>
 
-          {(giftWrap || greetingCard) && (
-            <div className="pt-2 animate-fade-up">
-              <textarea 
-                value={giftMessage}
-                onChange={(e) => setGiftMessage(e.target.value)}
-                placeholder="Write your heartfelt message here..." 
-                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-gray-900 h-24 resize-none"
-              ></textarea>
-            </div>
-          )}
-          
-          <div className="pt-2">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preferred Delivery Date</label>
-            <input 
-              type="date" 
-              value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-gray-900" 
-            />
-          </div>
+        {/* Custom Handwritten Calligraphy Card Note */}
+        <div className="pt-2">
+          <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
+            Handwritten Greeting Card Message (Optional)
+          </label>
+          <textarea 
+            value={giftMessage}
+            onChange={(e) => setGiftMessage(e.target.value)}
+            placeholder="Write your heartfelt message here... Our calligraphy team will handwrite it on a physical luxury gift card." 
+            className="w-full px-4 py-3 bg-white border border-stone-300 rounded-xl text-sm font-serif text-black placeholder:text-gray-400 focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 h-24 resize-none shadow-xs"
+          ></textarea>
+        </div>
+        
+        {/* Preferred Delivery Date */}
+        <div>
+          <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
+            Preferred Target Delivery Date (Optional)
+          </label>
+          <input 
+            type="date" 
+            value={deliveryDate}
+            onChange={(e) => setDeliveryDate(e.target.value)}
+            className="w-full px-4 py-3 bg-white border border-stone-300 rounded-xl text-sm text-black font-semibold focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 shadow-xs" 
+          />
         </div>
       </div>
       

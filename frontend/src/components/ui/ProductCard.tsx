@@ -51,7 +51,7 @@ export default function ProductCard(props: ProductCardProps) {
     e.preventDefault();
 
     toggleWishlist({
-      id: Number(id) || 1,
+      id: id,
       title,
       price,
       originalPrice,
@@ -61,13 +61,14 @@ export default function ProductCard(props: ProductCardProps) {
       tags,
       sameDayDelivery,
       category: "Catalog"
-    });
+    } as any);
   };
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
 
     addToCart({
+      productId: String(id),
       title,
       price,
       image,

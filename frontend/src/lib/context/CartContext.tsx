@@ -1,9 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 
 export type CartItem = {
   id: string;
+  productId?: string;
   title: string;
   price: number;
   image: string;
@@ -54,23 +55,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [cartItems, isLoaded]);
 
-  const openCart = () => setIsCartOpen(true);
-  const closeCart = () => setIsCartOpen(false);
+  const openCart = useCallback(() => setIsCartOpen(true), []);
+  const closeCart = useCallback(() => setIsCartOpen(false), []);
 
-  const addToCart = (item: Omit<CartItem, "id">) => {
-    // Generate a simple unique ID
+  const addToCart = useCallback((item: Omit<CartItem, "id">) => {
+    // Generate a simple unique ID for line items while preserving productId
     const id = Math.random().toString(36).substr(2, 9);
     setCartItems((prev) => [{ ...item, id }, ...prev]);
-    openCart();
-  };
+    setIsCartOpen(true);
+  }, []);
 
-  const removeFromCart = (id: string) => {
+  const removeFromCart = useCallback((id: string) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCartItems([]);
-  };
+    try {
+      localStorage.removeItem("trish_cart");
+    } catch (e) {
+      console.error("Failed to remove cart from local storage", e);
+    }
+  }, []);
 
   const cartTotal = cartItems.reduce((total, item) => {
     let itemTotal = item.price * item.quantity;

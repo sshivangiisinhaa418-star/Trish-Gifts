@@ -69,10 +69,10 @@ export default function AccountPage() {
           setEvents(formatted);
         }
 
-        // Fetch orders
+        // Fetch orders with line items
         const { data: ordersData } = await supabaseClient
           .from('orders')
-          .select('*')
+          .select('*, order_items(*)')
           .order('created_at', { ascending: false });
           
         if (ordersData) {
@@ -262,34 +262,115 @@ export default function AccountPage() {
               </div>
             )}
 
-            {/* Orders Tab */}
+            {/* Orders Tab (Amazon / Flipkart Style) */}
             {activeTab === "orders" && (
               <div className="animate-fade-up">
-                <h2 className="text-2xl text-gray-900 mb-8" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Order History</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl text-gray-900 font-semibold" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Your Orders</h2>
+                    <p className="text-xs text-gray-500 font-light mt-0.5">Track packages, view receipts, and manage gift shipments</p>
+                  </div>
+                  <span className="text-xs font-semibold text-gray-600 bg-stone-100 px-3 py-1 rounded-full">
+                    {dbOrders.length} {dbOrders.length === 1 ? 'Order' : 'Orders'} Placed
+                  </span>
+                </div>
                 
-                <div className="flex flex-col gap-4">
-                  {dbOrders.length > 0 ? dbOrders.map((order) => (
-                    <div key={order.id} className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-stone-50 rounded-full flex items-center justify-center border border-stone-200 shrink-0">
-                          <Gift className="w-5 h-5 text-gray-400" />
+                <div className="flex flex-col gap-6">
+                  {dbOrders.length > 0 ? dbOrders.map((order) => {
+                    const firstItem = order.order_items?.[0];
+                    const itemCount = order.order_items?.length || 1;
+                    return (
+                      <div key={order.id} className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        {/* Amazon Order Card Header */}
+                        <div className="bg-stone-50/80 px-6 py-4 border-b border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+                          <div className="flex flex-wrap items-center gap-6">
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase text-[9px] tracking-widest block">ORDER PLACED</span>
+                              <span className="font-medium text-gray-800">{new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase text-[9px] tracking-widest block">TOTAL</span>
+                              <span className="font-bold text-gray-900">₹{Number(order.total_amount).toLocaleString()}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase text-[9px] tracking-widest block">SHIP TO</span>
+                              <span className="font-medium text-gray-800">{order.recipient_name}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-gray-400 text-xs">#{order.id.slice(0, 8).toUpperCase()}</span>
+                            <Link 
+                              href={`/account/orders/${order.id}`}
+                              className="px-3.5 py-1.5 bg-white border border-stone-300 text-gray-800 hover:bg-stone-100 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-2xs"
+                            >
+                              View Order Details
+                            </Link>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Order {order.id.split('-')[0]}</p>
-                          <h4 className="font-medium text-gray-900">Gift Order</h4>
-                          <p className="text-sm text-gray-500 font-light mt-0.5">Sent to {order.recipient_name} on {new Date(order.created_at).toLocaleDateString()}</p>
+
+                        {/* Amazon Order Card Body */}
+                        <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                          <div className="flex items-start gap-4">
+                            <div className="w-20 h-24 bg-stone-100 rounded-xl flex items-center justify-center shrink-0 border border-stone-200 overflow-hidden relative">
+                              {firstItem?.image ? (
+                                <img src={firstItem.image} alt={firstItem.product_name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Gift className="w-8 h-8 text-[#500000]" />
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-900'}`}>
+                                  {order.status}
+                                </span>
+                                {order.tracking_number && (
+                                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                                    🚚 {order.courier_name || 'Courier'}: {order.tracking_number}
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-base">
+                                {firstItem?.product_name || "Luxury Artisanal Gift Parcel"}
+                              </h4>
+                              {itemCount > 1 && (
+                                <p className="text-xs text-gray-500 font-light mt-0.5">
+                                  + {itemCount - 1} additional gift {itemCount - 1 === 1 ? 'item' : 'items'} in parcel
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-500 font-light mt-1">
+                                Delivery Address: <span className="text-gray-700 font-normal">{order.recipient_address?.slice(0, 45)}...</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex flex-row md:flex-col gap-2 shrink-0 justify-end">
+                            <Link 
+                              href={`/account/orders/${order.id}`}
+                              className="px-5 py-2 bg-[#500000] text-white hover:bg-[#3d0000] rounded-xl text-xs font-bold uppercase tracking-wider transition-colors text-center shadow-sm"
+                            >
+                              Track Package & Receipt
+                            </Link>
+                            <Link 
+                              href={`/discover`}
+                              className="px-5 py-2 bg-stone-100 text-gray-800 hover:bg-stone-200 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors text-center"
+                            >
+                              Buy Again
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between md:flex-col md:items-end gap-2 shrink-0">
-                        <span className="font-medium text-gray-900">₹{order.total_amount.toLocaleString()}</span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                          {order.status}
-                        </span>
-                      </div>
+                    );
+                  }) : (
+                    <div className="bg-white border border-stone-200 rounded-2xl p-12 text-center text-gray-500 font-light shadow-sm">
+                      <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">No Orders Yet</h3>
+                      <p className="text-sm text-gray-500 font-light">When you send a gift to loved ones, your shipments and receipts will appear here.</p>
+                      <Link href="/discover" className="inline-block mt-5 px-6 py-2.5 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-colors shadow-sm">
+                        Browse Gift Collection &rarr;
+                      </Link>
                     </div>
-                  )) : (
-                    <p className="text-gray-500 font-light">No orders found.</p>
                   )}
                 </div>
               </div>

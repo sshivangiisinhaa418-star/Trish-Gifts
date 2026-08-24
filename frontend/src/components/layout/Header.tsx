@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, Heart, ShoppingBag, User, Sparkles, Settings } from "lucide-react";
 import GlobalNav from "./GlobalNav";
 import { useCart } from "@/lib/context/CartContext";
@@ -8,6 +9,7 @@ import { useWishlist } from "@/lib/context/WishlistContext";
 import { useAuth } from "@/lib/context/AuthContext";
 
 export default function Header() {
+  const router = useRouter();
   const { cartItems, openCart } = useCart();
   const { wishlistItems } = useWishlist();
   const { user, loading: authLoading } = useAuth();
@@ -51,7 +53,7 @@ export default function Header() {
                 if (e.key === 'Enter') {
                   const val = e.currentTarget.value.trim();
                   const dest = val ? `/discover?q=${encodeURIComponent(val)}` : '/discover';
-                  window.location.href = dest;
+                  router.push(dest);
                 }
               }}
               className="block w-full pl-11 pr-4 py-3 border-0 bg-gray-100/80 rounded-full text-sm font-medium text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-900 focus:bg-white transition-all outline-none"
