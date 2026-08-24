@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, X, Upload, ChevronLeft, Gift, CalendarHeart, PartyPopper, CalendarDays, Minus, Package, MessageSquare, Copy, Check, Phone, Mail, MapPin, User, Calendar, Truck, Sparkles, FileText, Navigation, Info, Trash2, Tag } from 'lucide-react'
+import { Plus, X, Upload, ChevronLeft, Gift, CalendarHeart, PartyPopper, CalendarDays, Minus, Package, MessageSquare, Copy, Check, Phone, Mail, MapPin, User, Calendar, Truck, Sparkles, FileText, Navigation, Info, Trash2, Tag, Send } from 'lucide-react'
 import { uploadProduct, updateOrderStatus, updateOrderCourierTracking, updateTicketStatus, deleteProduct, createNewCoupon, toggleCouponStatus } from '@/app/actions/admin'
 import Image from 'next/image'
 import { CATEGORIES, OCCASIONS, FESTIVALS, SPECIAL_DAYS } from '@/lib/constants/navigation'
@@ -605,21 +605,37 @@ export default function AdminClient({
                               className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
                             />
                           </div>
-                          <button
-                            type="button"
-                            disabled={isSavingCourier[order.id] || !currentCourier || !currentTracking}
-                            onClick={async () => {
-                              setIsSavingCourier(prev => ({ ...prev, [order.id]: true }));
-                              const res = await updateOrderCourierTracking(order.id, currentCourier, currentTracking);
-                              setIsSavingCourier(prev => ({ ...prev, [order.id]: false }));
-                              if (res?.success) {
-                                setOrders(orders.map(o => o.id === order.id ? { ...o, courier_name: currentCourier, tracking_number: currentTracking, status: 'Shipped' } : o));
-                              }
-                            }}
-                            className="px-6 py-2.5 bg-[#500000] hover:bg-[#3d0000] text-white rounded-xl text-xs font-bold uppercase tracking-widest disabled:opacity-40 transition-all shadow-sm flex items-center justify-center gap-2"
-                          >
-                            {isSavingCourier[order.id] ? 'Saving...' : 'Save & Mark as Shipped'}
-                          </button>
+                          
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              disabled={isSavingCourier[order.id] || !currentCourier || !currentTracking}
+                              onClick={async () => {
+                                setIsSavingCourier(prev => ({ ...prev, [order.id]: true }));
+                                const res = await updateOrderCourierTracking(order.id, currentCourier, currentTracking);
+                                setIsSavingCourier(prev => ({ ...prev, [order.id]: false }));
+                                if (res?.success) {
+                                  setOrders(orders.map(o => o.id === order.id ? { ...o, courier_name: currentCourier, tracking_number: currentTracking, status: 'Shipped' } : o));
+                                }
+                              }}
+                              className="px-5 py-2.5 bg-[#500000] hover:bg-[#3d0000] text-white rounded-xl text-xs font-bold uppercase tracking-widest disabled:opacity-40 transition-all shadow-sm flex items-center justify-center gap-2 flex-1"
+                            >
+                              <Truck className="w-3.5 h-3.5" />
+                              {isSavingCourier[order.id] ? 'Saving...' : 'Save & Ship'}
+                            </button>
+
+                            {currentCourier && currentTracking && (
+                              <a
+                                href={`https://api.whatsapp.com/send?phone=${encodeURIComponent(order.recipient_phone || order.sender_phone || '')}&text=${encodeURIComponent(`Hello ${order.recipient_name}! 🎁 Your TRISH Luxury Gift order #${order.id.slice(0, 8).toUpperCase()} has been dispatched via ${currentCourier} with tracking AWB: ${currentTracking}. Track live: https://trish-gifts.vercel.app/order-tracking`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-1.5"
+                                title="Send WhatsApp Tracking Update"
+                              >
+                                <Send className="w-3.5 h-3.5" /> WhatsApp
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
 

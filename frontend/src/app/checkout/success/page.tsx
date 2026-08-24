@@ -134,17 +134,22 @@ export default function OrderSuccessPage() {
             </div>
 
             <div className="w-full md:w-auto flex flex-col gap-3">
-              <button className="w-full md:w-auto px-8 py-3.5 bg-[#500000] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3d0000] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 group">
+              <a 
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`🎁 Hi! A special luxury surprise gift from TRISH Gifts has been ordered for you. You can preview your digital teaser card here: ${revealUrl}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full md:w-auto px-8 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 group"
+              >
                 <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                Send SMS Teaser
-              </button>
+                Send WhatsApp Teaser
+              </a>
               
               <button 
                 onClick={handleCopy}
                 className="w-full md:w-auto px-8 py-3.5 bg-white border border-stone-200 text-gray-700 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-stone-50 transition-all flex items-center justify-center gap-2"
               >
                 {copied ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                {copied ? 'Link Copied!' : 'Copy Reveal Link'}
+                {copied ? 'Link Copied!' : 'Copy Teaser Link'}
               </button>
             </div>
           </div>
