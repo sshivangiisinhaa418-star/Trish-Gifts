@@ -18,7 +18,7 @@ export async function createRazorpayOrder(amountInINR: number, cartItems: any[] 
 
     let verifiedAmount = amountInINR;
 
-    // Server-side Price Verification (Protection against client price tampering)
+    // Server-side Price & Stock Availability Verification
     if (Array.isArray(cartItems) && cartItems.length > 0) {
       const supabase = await createClient()
       const productIds = cartItems
@@ -28,8 +28,20 @@ export async function createRazorpayOrder(amountInINR: number, cartItems: any[] 
       if (productIds.length > 0) {
         const { data: dbProducts } = await supabase
           .from('products')
-          .select('id, price')
+          .select('id, name, price, stock')
           .in('id', productIds)
+
+        // Check for out-of-stock items
+        for (const item of cartItems) {
+          const pid = item.productId || item.id
+          const dbProd = (dbProducts || []).find((p: any) => p.id === pid)
+          if (dbProd && dbProd.stock !== undefined && dbProd.stock !== null) {
+            const reqQty = Number(item.quantity || 1)
+            if (dbProd.stock < reqQty) {
+              return { error: `Sorry, "${dbProd.name}" is currently out of stock (only ${dbProd.stock} available). Please adjust your cart quantity.` }
+            }
+          }
+        }
 
         const productMap = new Map<string, number>((dbProducts || []).map((p: any) => [p.id, Number(p.price)]))
 
@@ -139,6 +151,11 @@ export async function verifyAndCreateOrder(data: {
       ? `${rawAddress}${landmark ? `, Near ${landmark}` : ''}, ${city}, ${state ? `${state} ` : ''}- ${pincode}`
       : rawAddress
 
+    // GST Tax Calculation (18% inclusive tax breakdown)
+    const totalAmount = Number(shippingDetails.total_amount)
+    const subtotal = Math.round((totalAmount / 1.18) * 100) / 100
+    const gstAmount = Math.round((totalAmount - subtotal) * 100) / 100
+
     const orderData: any = {
       user_id: user.id,
       recipient_name: shippingDetails.recipient_name,
@@ -157,7 +174,9 @@ export async function verifyAndCreateOrder(data: {
       billing_address: shippingDetails.billing_address || fullRecipientAddress,
       razorpay_order_id: data.razorpay_order_id,
       razorpay_payment_id: data.razorpay_payment_id,
-      total_amount: Number(shippingDetails.total_amount),
+      subtotal: subtotal,
+      gst_amount: gstAmount,
+      total_amount: totalAmount,
       status: 'Processing'
     }
 
@@ -203,6 +222,27 @@ export async function verifyAndCreateOrder(data: {
         const fallbackItems = orderItemsData.map(({ image, greeting_card, ...rest }) => rest)
         await supabase.from('order_items').insert(fallbackItems)
       }
+
+      // Automatic Inventory Stock Deduction
+      for (const item of cartItems) {
+        const pid = item.productId || item.id
+        const qtyPurchased = Number(item.quantity || 1)
+        if (pid) {
+          const { data: pData } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', pid)
+            .single()
+
+          if (pData && pData.stock !== undefined && pData.stock !== null) {
+            const updatedStock = Math.max(0, Number(pData.stock) - qtyPurchased)
+            await supabase
+              .from('products')
+              .update({ stock: updatedStock })
+              .eq('id', pid)
+          }
+        }
+      }
     }
 
     revalidatePath('/account')
@@ -218,4 +258,5 @@ export async function verifyAndCreateOrder(data: {
     return { error: error?.message || 'Failed to complete order after payment.' }
   }
 }
+
 

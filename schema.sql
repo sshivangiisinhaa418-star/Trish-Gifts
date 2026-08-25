@@ -62,6 +62,8 @@ create table if not exists public.orders (
   razorpay_order_id text,
   razorpay_payment_id text,
   status text default 'Processing' not null,
+  subtotal numeric,
+  gst_amount numeric,
   total_amount numeric not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -69,6 +71,8 @@ create table if not exists public.orders (
 -- Ensure columns exist if table was previously created
 alter table public.orders add column if not exists razorpay_order_id text;
 alter table public.orders add column if not exists razorpay_payment_id text;
+alter table public.orders add column if not exists subtotal numeric;
+alter table public.orders add column if not exists gst_amount numeric;
 
 -- Coupons Table
 create table if not exists public.coupons (

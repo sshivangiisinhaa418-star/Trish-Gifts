@@ -157,15 +157,15 @@ export default function OrderSuccessPage() {
 
         {/* Summary Details */}
         <div className="w-full mt-10 bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="font-medium text-gray-900 mb-6 border-b border-stone-100 pb-4">Delivery Details</h3>
+          <h3 className="font-medium text-gray-900 mb-6 border-b border-stone-100 pb-4">Delivery & Tax Breakdown</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
             <div className="space-y-4">
               <div className="flex gap-3 text-sm">
                 <Gift className="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-900">The Midnight Velvet Perfume Set</p>
-                  <p className="text-gray-500 font-light mt-1">Premium Wrap, Physical Card Included</p>
+                  <p className="font-medium text-gray-900">Luxury Artisanal Gift Order</p>
+                  <p className="text-gray-500 font-light mt-1">Includes Premium Gift Wrapping & Personal Handwritten Card</p>
                 </div>
               </div>
             </div>
@@ -174,11 +174,22 @@ export default function OrderSuccessPage() {
               <div className="flex gap-3 text-sm">
                 <Calendar className="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-900">Estimated Delivery</p>
-                  <p className="text-gray-500 font-light mt-1">Thursday, October 24th</p>
+                  <p className="font-medium text-gray-900">Estimated Courier Dispatch</p>
+                  <p className="text-gray-500 font-light mt-1">Within 24 Hours (Express Courier)</p>
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Tax Invoice Receipt Note */}
+          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs space-y-2 text-gray-600">
+            <div className="flex justify-between font-medium text-gray-800">
+              <span>Standard Tax Invoice (GST @ 18% Included)</span>
+              <span className="text-green-700 font-semibold">Payment Verified ✓</span>
+            </div>
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              A official GST Tax Invoice has been generated and dispatched to your email address. All prices include 18% GST in accordance with Indian E-Commerce Regulations.
+            </p>
           </div>
         </div>
 
