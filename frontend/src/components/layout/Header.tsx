@@ -1,29 +1,41 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Heart, ShoppingBag, User, Sparkles, Settings } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, Sparkles, Settings, Menu, X, ChevronRight, Gift, CalendarHeart, PartyPopper } from "lucide-react";
 import GlobalNav from "./GlobalNav";
 import { useCart } from "@/lib/context/CartContext";
 import { useWishlist } from "@/lib/context/WishlistContext";
 import { useAuth } from "@/lib/context/AuthContext";
+import { CATEGORIES, OCCASIONS, FESTIVALS } from "@/lib/constants/navigation";
 
 export default function Header() {
   const router = useRouter();
   const { cartItems, openCart } = useCart();
   const { wishlistItems } = useWishlist();
   const { user, loading: authLoading } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-gray-100 animate-fade-up">
       <div className="w-full px-4 md:px-6 lg:px-8 h-20 flex items-center justify-between gap-4 md:gap-6">
         
-        {/* Left Section: Logo & Main Links */}
-        <div className="flex items-center gap-6 lg:gap-12">
+        {/* Left Section: Mobile Menu Button + Logo */}
+        <div className="flex items-center gap-3 lg:gap-12">
+          {/* Mobile Hamburger Button (Phones & Tablets) */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-2 text-gray-700 hover:text-gray-900 hover:bg-stone-100 rounded-full transition-colors"
+            aria-label="Toggle mobile menu"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
           {/* Logo */}
           <Link href="/" className="flex items-center group">
             <span 
-              className="text-3xl text-[#500000] tracking-[0.05em] inline-block hover:opacity-80 transition-opacity origin-left font-light pl-2"
+              className="text-3xl text-[#500000] tracking-[0.05em] inline-block hover:opacity-80 transition-opacity origin-left font-light pl-1"
               style={{ fontFamily: 'var(--font-cormorant), serif' }}
             >
               TRISH
@@ -113,9 +125,8 @@ export default function Header() {
             </Link>
           )}
 
-          {/* Professional Sign Up & Log In Buttons for Unauthenticated Visitors */}
+          {/* Professional Sign Up & Log In Buttons */}
           {authLoading ? (
-            // Skeleton placeholder while auth state is being determined — prevents flash of wrong UI
             <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-gray-200 ml-1">
               <div className="w-16 h-7 bg-gray-100 rounded-full animate-pulse" />
               <div className="w-20 h-8 bg-gray-200 rounded-full animate-pulse" />
@@ -152,8 +163,86 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      {/* Desktop Global Navigation */}
       <GlobalNav />
+
+      {/* Mobile & Tablet Slide-Over Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 top-20 z-50 bg-black/50 backdrop-blur-xs lg:hidden animate-fade-in" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="w-full max-w-sm bg-white h-[calc(100vh-5rem)] overflow-y-auto p-6 space-y-6 shadow-2xl animate-slide-in-left" onClick={(e) => e.stopPropagation()}>
+            <div className="border-b border-stone-200 pb-4">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Navigation Menu</p>
+              <p className="text-xl text-[#500000] font-serif" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Explore TRISH</p>
+            </div>
+
+            {/* Quick Mobile Links */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold text-[#500000] uppercase tracking-widest flex items-center gap-1.5">
+                <Gift className="w-3.5 h-3.5" /> Popular Categories
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                {CATEGORIES.slice(0, 6).map((cat) => (
+                  <Link
+                    key={cat}
+                    href={`/discover?category=${cat.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-gray-800 hover:bg-stone-100 hover:border-stone-300 transition-all flex items-center justify-between"
+                  >
+                    <span>{cat}</span>
+                    <ChevronRight className="w-3 h-3 text-gray-400" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold text-[#500000] uppercase tracking-widest flex items-center gap-1.5">
+                <CalendarHeart className="w-3.5 h-3.5" /> Special Occasions
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                {OCCASIONS.slice(0, 6).map((occ) => (
+                  <Link
+                    key={occ}
+                    href={`/discover?intent=${occ.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-gray-800 hover:bg-stone-100 hover:border-stone-300 transition-all flex items-center justify-between"
+                  >
+                    <span>{occ}</span>
+                    <ChevronRight className="w-3 h-3 text-gray-400" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold text-[#500000] uppercase tracking-widest flex items-center gap-1.5">
+                <PartyPopper className="w-3.5 h-3.5" /> Upcoming Festivals
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                {FESTIVALS.slice(0, 4).map((fest) => (
+                  <Link
+                    key={fest}
+                    href={`/discover?intent=${fest.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-gray-800 hover:bg-stone-100 hover:border-stone-300 transition-all flex items-center justify-between"
+                  >
+                    <span>{fest}</span>
+                    <ChevronRight className="w-3 h-3 text-gray-400" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-stone-200 pt-4 space-y-2">
+              <Link href="/heritage" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 text-xs font-bold uppercase tracking-widest text-gray-600 hover:text-gray-900">Our Story</Link>
+              <Link href="/concierge" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 text-xs font-bold uppercase tracking-widest text-gray-600 hover:text-gray-900">Our Concierge Services</Link>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
+
 
