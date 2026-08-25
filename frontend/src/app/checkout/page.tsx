@@ -93,7 +93,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      const orderRes = await createRazorpayOrder(finalAmount);
+      const orderRes = await createRazorpayOrder(finalAmount, cartItems, appliedCoupon?.code);
       if (orderRes.error || !orderRes.orderId) {
         alert(orderRes.error || "Failed to initialize payment.");
         setIsProcessing(false);

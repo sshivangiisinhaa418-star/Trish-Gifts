@@ -4,14 +4,56 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { validateCoupon } from '@/app/actions/store'
 
-export async function createRazorpayOrder(amountInINR: number) {
+export async function createRazorpayOrder(amountInINR: number, cartItems: any[] = [], promoCode?: string) {
   try {
-    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TTXMeDPbyMc0pU'
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || 'JjYw3vyMmPlpTX7LlkxPwgwn'
+    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+    const keySecret = process.env.RAZORPAY_KEY_SECRET
 
     if (!keyId || !keySecret) {
-      return { error: 'Razorpay API credentials not configured.' }
+      console.error('Razorpay Error: Missing NEXT_PUBLIC_RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET environment variables.')
+      return { error: 'Razorpay API credentials not configured in environment.' }
+    }
+
+    let verifiedAmount = amountInINR;
+
+    // Server-side Price Verification (Protection against client price tampering)
+    if (Array.isArray(cartItems) && cartItems.length > 0) {
+      const supabase = await createClient()
+      const productIds = cartItems
+        .map(i => i.productId || i.id)
+        .filter(Boolean)
+
+      if (productIds.length > 0) {
+        const { data: dbProducts } = await supabase
+          .from('products')
+          .select('id, price')
+          .in('id', productIds)
+
+        const productMap = new Map<string, number>((dbProducts || []).map((p: any) => [p.id, Number(p.price)]))
+
+        let serverTotal = 0
+        for (const item of cartItems) {
+          const pid = item.productId || item.id
+          const dbPrice = productMap.get(pid) ?? Number(item.price || 0)
+          let itemTotal = Number(dbPrice) * Number(item.quantity || 1)
+          if (item.giftingOptions?.giftWrap) itemTotal += 250
+          if (item.giftingOptions?.greetingCard) itemTotal += 150
+          serverTotal += itemTotal
+        }
+
+        if (promoCode) {
+          const promoRes = await validateCoupon(promoCode, serverTotal)
+          if (promoRes.success && promoRes.netTotal !== undefined) {
+            serverTotal = promoRes.netTotal
+          }
+        }
+
+        if (serverTotal > 0) {
+          verifiedAmount = serverTotal
+        }
+      }
     }
 
     const razorpay = new Razorpay({
@@ -20,7 +62,7 @@ export async function createRazorpayOrder(amountInINR: number) {
     })
 
     const options = {
-      amount: Math.max(100, Math.round(amountInINR * 100)), // Amount in paise (min 100 paise = ₹1)
+      amount: Math.max(100, Math.round(verifiedAmount * 100)), // Amount in paise (min 100 paise = ₹1)
       currency: 'INR',
       receipt: `rcpt_${Date.now().toString().slice(-8)}`
     }
@@ -62,10 +104,10 @@ export async function verifyAndCreateOrder(data: {
   cartItems: any[]
 }) {
   try {
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || 'JjYw3vyMmPlpTX7LlkxPwgwn'
+    const keySecret = process.env.RAZORPAY_KEY_SECRET
 
     if (!keySecret) {
-      return { error: 'Payment secret not configured.' }
+      return { error: 'Payment secret not configured in environment.' }
     }
 
     // 1. Cryptographic HMAC-SHA256 Signature Verification
@@ -113,6 +155,8 @@ export async function verifyAndCreateOrder(data: {
       sender_phone: shippingDetails.sender_phone || null,
       sender_email: shippingDetails.sender_email || null,
       billing_address: shippingDetails.billing_address || fullRecipientAddress,
+      razorpay_order_id: data.razorpay_order_id,
+      razorpay_payment_id: data.razorpay_payment_id,
       total_amount: Number(shippingDetails.total_amount),
       status: 'Processing'
     }
@@ -174,3 +218,4 @@ export async function verifyAndCreateOrder(data: {
     return { error: error?.message || 'Failed to complete order after payment.' }
   }
 }
+

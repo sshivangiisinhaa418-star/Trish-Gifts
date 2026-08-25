@@ -81,3 +81,52 @@ export async function logout() {
   revalidatePath('/', 'layout')
   redirect('/')
 }
+
+export async function requestPasswordReset(formData: FormData) {
+  const supabase = await createClient()
+  const headersList = await headers()
+  const host = headersList.get('host')
+  const protocol = host?.includes('localhost') ? 'http' : 'https'
+  const origin = headersList.get('origin') || (host ? `${protocol}://${host}` : null) || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+  const email = formData.get('email') as string
+  if (!email || !email.includes('@')) {
+    return { error: 'Please enter a valid email address.' }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/reset-password')}`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient()
+  const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (!password || password.length < 6) {
+    return { error: 'Password must be at least 6 characters long.' }
+  }
+
+  if (password !== confirmPassword) {
+    return { error: 'Passwords do not match.' }
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: password
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/', 'layout')
+  redirect('/login?resetSuccess=true')
+}
+

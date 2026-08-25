@@ -3,12 +3,26 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+async function checkAdminAccess(supabase: any) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return false;
+
+  if (user.email?.toLowerCase() === 'mayankrajdto@gmail.com') return true;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
+
+  return Boolean(profile?.is_admin);
+}
+
 export async function uploadProduct(formData: FormData) {
   const supabase = await createClient()
   
   // Verify Admin Access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized. Admin access required.' }
   }
 
@@ -104,8 +118,7 @@ export async function getProducts() {
 export async function getAllOrders() {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return []
   }
 
@@ -125,8 +138,7 @@ export async function getAllOrders() {
 export async function updateOrderStatus(orderId: string, newStatus: string) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized' }
   }
 
@@ -146,8 +158,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 export async function updateOrderCourierTracking(orderId: string, courierName: string, trackingNumber: string) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized' }
   }
 
@@ -171,8 +182,7 @@ export async function updateOrderCourierTracking(orderId: string, courierName: s
 export async function getAllSupportTickets() {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return []
   }
 
@@ -192,8 +202,7 @@ export async function getAllSupportTickets() {
 export async function updateTicketStatus(ticketId: string, newStatus: string) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized' }
   }
 
@@ -213,8 +222,7 @@ export async function updateTicketStatus(ticketId: string, newStatus: string) {
 export async function deleteProduct(productId: string) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized' }
   }
 
@@ -234,8 +242,7 @@ export async function deleteProduct(productId: string) {
 export async function updateProductDetails(productId: string, updates: { price?: number, stock?: number }) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized' }
   }
 
@@ -255,8 +262,7 @@ export async function updateProductDetails(productId: string, updates: { price?:
 export async function getAllCoupons() {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return []
   }
 
@@ -276,8 +282,7 @@ export async function getAllCoupons() {
 export async function createNewCoupon(formData: FormData) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized' }
   }
 
@@ -311,8 +316,7 @@ export async function createNewCoupon(formData: FormData) {
 export async function toggleCouponStatus(couponId: string, isActive: boolean) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== 'mayankrajdto@gmail.com') {
+  if (!(await checkAdminAccess(supabase))) {
     return { error: 'Unauthorized' }
   }
 
@@ -328,4 +332,5 @@ export async function toggleCouponStatus(couponId: string, isActive: boolean) {
   revalidatePath('/admin')
   return { success: true }
 }
+
 
