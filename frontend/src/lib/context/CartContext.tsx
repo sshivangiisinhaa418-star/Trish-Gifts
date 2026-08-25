@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
+import { syncUserCart, fetchUserCart } from "@/app/actions/store";
 
 export type CartItem = {
   id: string;
@@ -35,23 +36,42 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from localStorage & Supabase DB on mount
   useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem("trish_cart");
-      if (savedCart) {
-        setCartItems(JSON.parse(savedCart));
+    async function initializeCart() {
+      let initialCart: CartItem[] = [];
+      try {
+        const savedCart = localStorage.getItem("trish_cart");
+        if (savedCart) {
+          initialCart = JSON.parse(savedCart);
+        }
+      } catch (e) {
+        console.error("Failed to parse cart from local storage", e);
       }
-    } catch (e) {
-      console.error("Failed to parse cart from local storage", e);
+
+      // Check DB cart for logged-in user
+      const serverRes = await fetchUserCart();
+      if (serverRes?.cartItems && Array.isArray(serverRes.cartItems)) {
+        if (serverRes.cartItems.length > 0) {
+          initialCart = serverRes.cartItems;
+        } else if (initialCart.length > 0) {
+          // Sync local items to server if server cart was empty
+          await syncUserCart(initialCart);
+        }
+      }
+
+      setCartItems(initialCart);
+      setIsLoaded(true);
     }
-    setIsLoaded(true);
+
+    initializeCart();
   }, []);
 
-  // Save to localStorage whenever cart changes
+  // Save to localStorage & Supabase DB whenever cart changes
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("trish_cart", JSON.stringify(cartItems));
+      syncUserCart(cartItems);
     }
   }, [cartItems, isLoaded]);
 

@@ -182,3 +182,59 @@ export async function submitProductReview(formData: FormData) {
     return { error: 'Failed to submit review.' };
   }
 }
+
+export async function syncUserCart(cartItems: any[]) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, reason: 'unauthenticated' };
+    }
+
+    const { error } = await supabase
+      .from('user_carts')
+      .upsert({
+        user_id: user.id,
+        cart_data: cartItems || [],
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+    if (error) {
+      console.error('Error syncing user cart:', error.message);
+      return { error: error.message };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to sync user cart:', error);
+    return { error: error?.message || 'Cart sync failed' };
+  }
+}
+
+export async function fetchUserCart() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { cartItems: null };
+    }
+
+    const { data, error } = await supabase
+      .from('user_carts')
+      .select('cart_data')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error || !data) {
+      return { cartItems: [] };
+    }
+
+    return { cartItems: data.cart_data || [] };
+  } catch (error) {
+    console.error('Failed to fetch user cart:', error);
+    return { cartItems: [] };
+  }
+}
+
