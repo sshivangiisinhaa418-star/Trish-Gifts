@@ -19,10 +19,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full glass border-b border-gray-100 animate-fade-up">
-      <div className="w-full px-4 md:px-6 lg:px-8 h-20 flex items-center justify-between gap-4 md:gap-6">
+      <div className="w-full px-3 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2 sm:gap-4 md:gap-6">
         
         {/* Left Section: Mobile Menu Button + Logo */}
-        <div className="flex items-center gap-3 lg:gap-12">
+        <div className="flex items-center gap-2 sm:gap-4 lg:gap-12 shrink-0">
           {/* Mobile Hamburger Button (Phones & Tablets) */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -35,7 +35,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center group">
             <span 
-              className="text-3xl text-[#500000] tracking-[0.05em] inline-block hover:opacity-80 transition-opacity origin-left font-light pl-1"
+              className="text-2xl sm:text-3xl text-[#500000] tracking-[0.05em] inline-block hover:opacity-80 transition-opacity origin-left font-light pl-1"
               style={{ fontFamily: 'var(--font-cormorant), serif' }}
             >
               TRISH
@@ -74,8 +74,8 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Right Section: Icons & Professional Auth Buttons */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        {/* Right Section: Icons & Responsive Auth */}
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0">
           {/* AI Gift Finder Button */}
           <Link 
             href="/gift-finder"
@@ -86,20 +86,21 @@ export default function Header() {
           </Link>
           <Link 
             href="/gift-finder"
-            className="md:hidden p-2 text-[#500000] hover:bg-red-50 transition-colors rounded-full relative group"
+            className="md:hidden p-1.5 text-[#500000] hover:bg-red-50 transition-colors rounded-full relative group"
+            title="AI Customiser"
           >
             <Sparkles className="w-5 h-5" />
           </Link>
           
           {/* Mobile Search Icon */}
-          <Link href="/discover" className="p-2 md:hidden text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100">
+          <Link href="/discover" className="p-1.5 md:hidden text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100" title="Search">
             <Search className="w-5 h-5" />
           </Link>
           
-          <Link href="/wishlist" className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group">
+          <Link href="/wishlist" className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 relative group" title="Wishlist">
             <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
             {wishlistItems.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
             )}
           </Link>
           
@@ -107,7 +108,8 @@ export default function Header() {
             onClick={() => {
               openCart();
             }}
-            className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 flex items-center gap-1 group"
+            className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 flex items-center gap-1 group"
+            title="Cart"
           >
             <div className="relative">
               <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -120,19 +122,19 @@ export default function Header() {
           </button>
 
           {user?.email?.toLowerCase() === 'mayankrajdto@gmail.com' && (
-            <Link href="/admin" className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group">
+            <Link href="/admin" className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group" title="Admin">
               <Settings className="w-5 h-5 group-hover:scale-110 transition-transform text-[#500000]" />
             </Link>
           )}
 
           {/* Professional Sign Up & Log In Buttons */}
           {authLoading ? (
-            <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-gray-200 ml-1">
+            <div className="hidden sm:flex items-center gap-2 pl-2 sm:pl-3 border-l border-gray-200 ml-1">
               <div className="w-16 h-7 bg-gray-100 rounded-full animate-pulse" />
               <div className="w-20 h-8 bg-gray-200 rounded-full animate-pulse" />
             </div>
           ) : user ? (
-            <Link href="/account" title="My Account & Orders" className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group flex items-center ml-1">
+            <Link href="/account" title="My Account & Orders" className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100 group flex items-center ml-1">
               {user?.user_metadata?.avatar_url ? (
                 <img 
                   src={user.user_metadata.avatar_url} 
@@ -146,20 +148,32 @@ export default function Header() {
               )}
             </Link>
           ) : (
-            <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-gray-200 ml-1">
+            <>
+              {/* Show Log In & Sign Up on medium/desktop screens (>= md) */}
+              <div className="hidden md:flex items-center gap-1.5 pl-2 border-l border-gray-200 ml-1">
+                <Link 
+                  href="/login" 
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-700 hover:text-[#500000] transition-colors rounded-full hover:bg-gray-100 whitespace-nowrap"
+                >
+                  Log In
+                </Link>
+                <Link 
+                  href="/signup" 
+                  className="px-4 py-2 bg-gradient-to-r from-[#500000] to-[#700000] text-white hover:opacity-95 transition-all duration-300 text-xs font-semibold rounded-full shadow-md hover:shadow-lg whitespace-nowrap"
+                >
+                  Sign Up
+                </Link>
+              </div>
+
+              {/* On small/tablet screens (< md), show User Icon that routes to Login */}
               <Link 
                 href="/login" 
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs md:text-sm font-semibold text-gray-700 hover:text-[#500000] transition-colors rounded-full hover:bg-gray-100 whitespace-nowrap"
+                className="md:hidden p-1.5 text-gray-700 hover:text-[#500000] transition-colors rounded-full hover:bg-stone-100 border-l border-gray-200 ml-1"
+                title="Log In / Sign Up"
               >
-                Log In
+                <User className="w-5 h-5" />
               </Link>
-              <Link 
-                href="/signup" 
-                className="px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-[#500000] to-[#700000] text-white hover:opacity-95 transition-all duration-300 text-xs md:text-sm font-semibold rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
-              >
-                Sign Up
-              </Link>
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -170,8 +184,53 @@ export default function Header() {
       {/* Mobile & Tablet Slide-Over Drawer */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 top-20 z-50 bg-black/50 backdrop-blur-xs lg:hidden animate-fade-in" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="w-full max-w-sm bg-white h-[calc(100vh-5rem)] overflow-y-auto p-6 space-y-6 shadow-2xl animate-slide-in-left" onClick={(e) => e.stopPropagation()}>
-            <div className="border-b border-stone-200 pb-4">
+          <div className="w-full max-w-xs sm:max-w-sm bg-white h-[calc(100vh-5rem)] overflow-y-auto p-5 sm:p-6 space-y-6 shadow-2xl animate-slide-in-left" onClick={(e) => e.stopPropagation()}>
+            
+            {/* Mobile Auth Card at top of Drawer */}
+            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 shadow-sm">
+              {user ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-9 h-9 rounded-full bg-[#500000]/10 text-[#500000] flex items-center justify-center font-bold text-sm shrink-0">
+                      {user.email?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="overflow-hidden">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Welcome back</p>
+                      <p className="text-xs font-semibold text-gray-900 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link 
+                    href="/account" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-3 py-1.5 text-xs font-bold bg-[#500000] text-white rounded-full shrink-0 shadow-xs"
+                  >
+                    Account
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Account Access</p>
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      href="/login" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex-1 py-2 text-center text-xs font-bold text-[#500000] border border-[#500000] rounded-full hover:bg-rose-50 transition-colors"
+                    >
+                      Log In
+                    </Link>
+                    <Link 
+                      href="/signup" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex-1 py-2 text-center text-xs font-bold text-white bg-gradient-to-r from-[#500000] to-[#700000] rounded-full shadow-sm hover:opacity-95 transition-all"
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="border-b border-stone-200 pb-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Navigation Menu</p>
               <p className="text-xl text-[#500000] font-serif" style={{ fontFamily: 'var(--font-cormorant), serif' }}>Explore TRISH</p>
             </div>

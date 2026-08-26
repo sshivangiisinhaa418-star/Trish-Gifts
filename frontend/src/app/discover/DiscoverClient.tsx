@@ -117,22 +117,21 @@ export default function DiscoverClient({ initialIntent, searchQuery = "", initia
   const hasIntentFilter = !!initialIntent;
 
   return (
-    <div className="w-full px-4 md:px-8 lg:px-12 2xl:px-16">
+    <div className="w-full px-3 sm:px-6 md:px-8 lg:px-12 2xl:px-16">
       
       {/* Page Header (Intent Context) */}
-      {/* Page Header (Intent Context) */}
-      <div className="mb-8 md:mb-12 animate-fade-up flex flex-col xl:flex-row xl:items-end justify-between gap-8">
+      <div className="mb-8 md:mb-12 animate-fade-up flex flex-col xl:flex-row xl:items-end justify-between gap-6 md:gap-8">
         
         {/* Left Side: Text Content */}
         <div className="flex-1 max-w-3xl">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Sparkles className="w-5 h-5 text-brand-500 animate-pulse" />
-            <span className="text-sm font-bold text-brand-500 uppercase tracking-widest">
+            <span className="text-xs sm:text-sm font-bold text-brand-500 uppercase tracking-widest">
               {initialIntent ? `Curated for ${displayIntent}` : "Curated For You"}
             </span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-heading font-medium text-gray-900 mb-4 tracking-tight capitalize">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-medium text-gray-900 mb-3 sm:mb-4 tracking-tight capitalize">
             {initialIntent ? `Gifts for ${displayIntent}` : "Gifts that speak volumes."}
           </h1>
           
@@ -362,7 +361,7 @@ export default function DiscoverClient({ initialIntent, searchQuery = "", initia
           
           {/* Grid */}
           {displayProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 md:gap-x-6 xl:gap-x-8 gap-y-10 md:gap-y-12">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6 gap-y-6 sm:gap-y-8 md:gap-y-12">
               {displayProducts.slice(0, visibleCount).map((product, index) => (
                 <div key={product.id} className="animate-fade-up" style={{ animationDelay: `${(index % 4) * 100}ms` }}>
                   <ProductCard {...product} />

@@ -37,7 +37,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${outfit.variable} ${cormorant.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans max-w-full overflow-x-hidden">
         <AuthProvider>
           <WishlistProvider>
             <CartProvider>

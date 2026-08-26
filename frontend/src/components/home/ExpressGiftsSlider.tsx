@@ -53,7 +53,7 @@ export default function ExpressGiftsSlider() {
             <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
             Same-Day Delivery
           </div>
-          <h2 className="text-4xl md:text-5xl font-heading font-bold text-gray-900 tracking-tight">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-heading font-bold text-gray-900 tracking-tight">
             Forgot a special day? <br/>We've got you. <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-accent-500 italic font-light">Last minute under rs. 700</span>
           </h2>
         </div>
@@ -63,7 +63,7 @@ export default function ExpressGiftsSlider() {
       </div>
 
       <div className="container mx-auto px-4 pb-12">
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-6 pb-8 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           
           {cards.map((card, index) => (
             <motion.div
@@ -72,7 +72,7 @@ export default function ExpressGiftsSlider() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="snap-start shrink-0 w-[85vw] sm:w-[320px] group cursor-pointer"
+              className="snap-start shrink-0 w-[82vw] max-w-[320px] sm:w-[320px] group cursor-pointer"
             >
               {/* Ultra-Premium Card Body */}
               <div className="relative h-[380px] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2">
