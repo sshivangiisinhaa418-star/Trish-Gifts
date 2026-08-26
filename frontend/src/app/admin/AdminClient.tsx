@@ -793,24 +793,44 @@ export default function AdminClient({
                   </div>
                 </div>
 
-                {/* Pricing & Inventory */}
+                {/* Pricing & Display Badges */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 border-b border-stone-100 pb-2">Pricing & Inventory</h3>
+                  <h3 className="text-lg font-medium text-gray-900 border-b border-stone-100 pb-2">Pricing, Badges & Ratings</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Selling Price (₹)</label>
-                      <input type="number" name="price" step="0.01" required className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+                      <input type="number" name="price" step="0.01" required placeholder="e.g. 1899" className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Compare at Price (MRP)</label>
-                      <input type="number" name="compare_at_price" step="0.01" placeholder="Optional" className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Compare at Price / MRP (₹)</label>
+                      <input type="number" name="compare_at_price" step="0.01" placeholder="e.g. 2200 (Shows % OFF)" className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Stock Quantity</label>
                       <input type="number" name="stock" defaultValue={10} required className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Initial Rating (1 to 5)</label>
+                      <input type="number" name="rating" step="0.1" min="1" max="5" defaultValue={5} className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Review Count</label>
+                      <input type="number" name="reviews" defaultValue={24} className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-sm font-light focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+                    </div>
+                    <div className="flex items-center pt-6">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="same_day_delivery" defaultChecked className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900" />
+                        <span className="text-xs font-semibold text-gray-800">Enable Same-Day Delivery Badge</span>
+                      </label>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-400 italic">
+                    💡 Tip: Setting MRP higher than Selling Price (e.g., ₹2,200 MRP & ₹1,899 Price) automatically generates the "14% OFF" badge on the product card.
+                  </p>
                 </div>
 
                 {/* Bullet Points */}

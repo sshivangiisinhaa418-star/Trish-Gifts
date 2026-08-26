@@ -33,6 +33,9 @@ export async function uploadProduct(formData: FormData) {
   const stock = parseInt(formData.get('stock') as string) || 0
   const sku = formData.get('sku') as string || null
   const intent = formData.get('intent') as string
+  const rating = formData.get('rating') ? parseFloat(formData.get('rating') as string) : 5
+  const reviewsCount = formData.get('reviews') ? parseInt(formData.get('reviews') as string) : 24
+  const sameDayDelivery = formData.get('same_day_delivery') === 'true' || formData.get('same_day_delivery') === 'on'
   
   const features = formData.getAll('features').filter(f => f.toString().trim() !== '') as string[]
   const images = formData.getAll('images') as File[]
@@ -71,23 +74,33 @@ export async function uploadProduct(formData: FormData) {
     }
 
     // Insert into Database
-    const { error: dbError } = await supabase
+    const productPayload: any = {
+      name,
+      description,
+      price,
+      compare_at_price: compareAtPrice,
+      stock,
+      sku,
+      intent,
+      features,
+      images: imageUrls,
+      rating,
+      reviews: reviewsCount,
+      same_day_delivery: sameDayDelivery
+    }
+
+    let { error: dbError } = await supabase
       .from('products')
-      .insert({
-        name,
-        description,
-        price,
-        compare_at_price: compareAtPrice,
-        stock,
-        sku,
-        intent,
-        features,
-        images: imageUrls
-      })
+      .insert(productPayload)
 
     if (dbError) {
-      console.error('Database error:', dbError)
-      return { error: 'Failed to save product details to database.' }
+      // Fallback if optional columns don't exist in older table schema
+      const { rating: _r, reviews: _rev, same_day_delivery: _sdd, ...basePayload } = productPayload
+      const retry = await supabase.from('products').insert(basePayload)
+      if (retry.error) {
+        console.error('Database error:', retry.error)
+        return { error: 'Failed to save product details to database.' }
+      }
     }
 
     revalidatePath('/', 'layout')
