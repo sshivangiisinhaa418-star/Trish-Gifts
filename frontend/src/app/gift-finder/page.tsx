@@ -3,6 +3,8 @@ import GiftWizard from "@/components/gift-finder/GiftWizard";
 import Image from "next/image";
 import { getAllProducts } from "@/app/actions/store";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "AI Gift Finder | TRISH",
   description: "Find the perfect gift in seconds with our AI Gift Concierge.",
