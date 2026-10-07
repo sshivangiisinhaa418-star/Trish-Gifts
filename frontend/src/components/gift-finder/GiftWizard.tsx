@@ -47,6 +47,15 @@ type GiftResult = {
   matchScore?: number;
 };
 
+const DEFAULT_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=800&q=80";
+
+const getValidImage = (p: any): string => {
+  if (p?.image && typeof p.image === 'string' && p.image.trim() !== '') return p.image.trim();
+  if (p?.image_url && typeof p.image_url === 'string' && p.image_url.trim() !== '') return p.image_url.trim();
+  if (Array.isArray(p?.images) && p.images.length > 0 && typeof p.images[0] === 'string' && p.images[0].trim() !== '') return p.images[0].trim();
+  return DEFAULT_FALLBACK_IMAGE;
+};
+
 export default function GiftWizard({ initialProducts = [] }: { initialProducts?: any[] }) {
   const { addToCart } = useCart();
 
@@ -217,7 +226,7 @@ export default function GiftWizard({ initialProducts = [] }: { initialProducts?:
         category: p.category || "Luxury Gift",
         price: p.price,
         originalPrice: p.originalPrice || Math.round(p.price * 1.25),
-        image: p.image,
+        image: getValidImage(p),
         rating: p.rating || 4.9,
         reviews: p.reviews || 84,
         tags: p.tags || ["BESTSELLER"],
@@ -412,8 +421,8 @@ export default function GiftWizard({ initialProducts = [] }: { initialProducts?:
                           {/* Image Header */}
                           <div className="relative h-44 w-full overflow-hidden bg-stone-100">
                             <Image
-                              src={product.image}
-                              alt={product.title}
+                              src={product.image || DEFAULT_FALLBACK_IMAGE}
+                              alt={product.title || "Gift"}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-700"
                             />
