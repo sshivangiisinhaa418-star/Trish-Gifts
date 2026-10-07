@@ -38,10 +38,14 @@ export default function LoginPage() {
         },
       });
       if (error) {
-        setError(error.message);
+        if (error.message.includes('fetch failed') || error.message.includes('Failed to fetch')) {
+          setError('Unable to connect to Supabase Auth. Your Supabase project appears to be paused or unreachable. Please unpause it in your Supabase Dashboard.');
+        } else {
+          setError(error.message);
+        }
       }
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred during login.");
+      setError(err?.message || "An unexpected error occurred during Google sign in.");
     }
   };
 

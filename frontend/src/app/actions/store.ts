@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { allProducts } from '@/lib/data/products'
 
 export async function getAllProducts() {
   try {
@@ -11,15 +12,17 @@ export async function getAllProducts() {
       .select('*')
       .order('created_at', { ascending: false })
       
-    if (error) {
-      console.error('Failed to fetch products:', error.message || error)
-      return []
+    if (error || !data || data.length === 0) {
+      if (error) {
+        console.warn('Database fetch fallback active:', error.message || error)
+      }
+      return allProducts as any[]
     }
     
-    return data || []
+    return data
   } catch (error) {
-    console.error('Server error in getAllProducts:', error);
-    return [];
+    console.warn('Server error in getAllProducts, using fallback products:', error);
+    return allProducts as any[];
   }
 }
 
@@ -33,15 +36,16 @@ export async function getProductById(id: string) {
       .eq('id', id)
       .single()
       
-    if (error) {
-      console.error('Failed to fetch product:', error)
-      return null
+    if (error || !data) {
+      const fallback = allProducts.find(p => p.id.toString() === id.toString())
+      return fallback || null
     }
     
     return data
   } catch (error) {
-    console.error('Server error in getProductById:', error);
-    return null;
+    console.warn('Server error in getProductById, using fallback:', error);
+    const fallback = allProducts.find(p => p.id.toString() === id.toString())
+    return fallback || null;
   }
 }
 
